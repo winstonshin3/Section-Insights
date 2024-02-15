@@ -16,71 +16,57 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		if (id === "" || id.includes("_") || id.trim() === "") {
-			// || content === "" || content === null || content === undefined || kind === null || kind === undefined
-			return Promise.reject(new InsightError("Invalid id"));
+		// if (id === "" || id.includes("_") || id.trim() === "") {
+		// 	return Promise.reject(new InsightError("Invalid id"));
+		// }
+		// if (this.datasets.has(id)) {
+		// 	return Promise.reject(new InsightError("Dataset already exists"));
+		// }
+		if (id === "" || id.includes("_") || id.trim() === "" || this.datasets.has(id)) {
+			return Promise.reject(new InsightError(this.datasets.has(id) ? "Dataset already exists" : "Invalid id"));
 		}
-		if (this.datasets.has(id)) {
-			return Promise.reject(new InsightError("Dataset already exists"));
-		}
-
 		let zip = await JSZip.loadAsync(content, {base64: true});
 		let folder = zip.folder("courses");
-
 		if (folder === null) {
 			return Promise.reject(new InsightError("Folder not found in zip"));
 		}
 		let array = [];
-		// // FIRST ATTEMPT
-		if (folder != null) {
-			let fileInFolder = zip.files;
-			let fileNames = Object.keys(fileInFolder);
-			// console.log(fileNames);
-			
-			for (const fileName of fileNames) {
-				let file = zip.file(fileName);
-				if (file != null) {
-					try {
-						let jsonContent = await file.async("string");
-						let data = JSON.parse(jsonContent);
-						let dataPoints = data.result;
-						
-						// console.log(dataPoints);
-						for (let l of dataPoints) {
-							const newObject = {
-								
-								[`${id}_uuid`]: l.id,
-								[`${id}_id`]: l.Course,
-								[`${id}_title`]: l.Title,
-								[`${id}_instructor`]: l.Professor,
-								[`${id}_subject`]: l.Subject,
-								[`${id}_year`]: l.Year,
-								[`${id}_avg`]: l.Avg,
-								[`${id}_pass`]: l.Pass,
-								[`${id}_fail`]: l.Fail,
-								[`${id}_audit`]: l.Audit,
-							};
-							array.push(newObject);
-							// console.log(newObject);
-							const jsonFilteredData = JSON.stringify(newObject, null, 2);
-							// console.log(jsonFilteredData);
-							// array.push(jsonFilteredData);
-						}
-						// console.log(array);
-
-					} catch (e) {
-						return Promise.reject(new InsightError("Error processing file: " + fileName));
-					}
+		let fileInFolder = zip.files;
+		let fileNames = Object.keys(fileInFolder);
+		const filePromises = fileNames.map(async (fileName) => {
+			let file = zip.file(fileName);
+			if (file != null) {
+				try {
+					let jsonContent = await file.async("string");
+					let data = JSON.parse(jsonContent);
+					let dataPoints = data.result;
+					return dataPoints.map((l: any) => ({
+						[`${id}_uuid`]: l.id,
+						[`${id}_id`]: l.Course,
+						[`${id}_title`]: l.Title,
+						[`${id}_instructor`]: l.Professor,
+						[`${id}_subject`]: l.Subject,
+						[`${id}_year`]: l.Year,
+						[`${id}_avg`]: l.Avg,
+						[`${id}_pass`]: l.Pass,
+						[`${id}_fail`]: l.Fail,
+						[`${id}_audit`]: l.Audit,
+					}));
+				} catch (e) {
+					throw new InsightError("Error processing file: " + fileName);
 				}
 			}
-			try {
-				await fs.ensureDir('./data');
-				await fs.writeJson('./data/test.json', array)
-				console.log('success!')
-			  } catch (err) {
-				console.error(err)
-			  }
-			
+			return [];
+		});
+		try {
+			const results = await Promise.all(filePromises);
+			for (const result of results) {
+				array.push(...result);
+			}
+			await fs.ensureDir("./data");
+			await fs.writeJson("./data/test.json", array);
+		} catch (err) {
+			return Promise.reject(err);
 		}
 		return Promise.reject(new InsightError());
 	}

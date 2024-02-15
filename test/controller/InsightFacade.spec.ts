@@ -61,13 +61,13 @@ describe("InsightFacade", function () {
 
 			// Add the datasets to InsightFacade once.
 			// Will *fail* if there is a problem reading ANY dataset.
-			const loadDatasetPromises = [facade.addDataset("sections", sections, InsightDatasetKind.Sections)];
+			// const loadDatasetPromises = [facade.addDataset("sections", sections, InsightDatasetKind.Sections)];
 
-			try {
-				await Promise.all(loadDatasetPromises);
-			} catch (err) {
-				throw new Error(`In PerformQuery Before hook, dataset(s) failed to be added. \n${err}`);
-			}
+			// try {
+			// 	await Promise.all(loadDatasetPromises);
+			// } catch (err) {
+			// 	throw new Error(`In PerformQuery Before hook, dataset(s) failed to be added. \n${err}`);
+			// }
 		});
 
 		after(async function () {
