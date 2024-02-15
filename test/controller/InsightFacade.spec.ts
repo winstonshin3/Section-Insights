@@ -1,15 +1,12 @@
-import {
-	IInsightFacade,
-	InsightDatasetKind,
-	InsightError
-} from "../../src/controller/IInsightFacade";
+import {IInsightFacade, InsightDatasetKind, InsightError} from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
-
+import chai = require("chai");
 import {assert, expect, use} from "chai";
-import chaiAsPromised from "chai-as-promised";
+// import chaiAsPromised from "chai-as-promised";
+import * as chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives, readFileQueries} from "../TestUtil";
-
-use(chaiAsPromised);
+chai.use(require("chai-as-promised"));
+// use(chaiAsPromised);
 
 export interface ITestQuery {
 	title: string;
@@ -26,14 +23,15 @@ describe("InsightFacade", function () {
 
 	before(async function () {
 		// This block runs once and loads the datasets.
-		sections = await getContentFromArchives("pair.zip");
+		// sections = await getContentFromArchives("pair.zip");
+		sections = await getContentFromArchives("testData.zip");
+
 
 		// Just in case there is anything hanging around from a previous run of the test suite
-		await clearDisk();
+		// await clearDisk();
 	});
 
 	describe("AddDataset", function () {
-
 		beforeEach(function () {
 			// This section resets the insightFacade instance
 			// This runs before each test
@@ -43,11 +41,11 @@ describe("InsightFacade", function () {
 		afterEach(async function () {
 			// This section resets the data directory (removing any cached data)
 			// This runs after each test, which should make each test independent of the previous one
-			await clearDisk();
+			// await clearDisk();
 		});
 
 		it("should reject with  an empty dataset id", async function () {
-			const result = facade.addDataset("", sections, InsightDatasetKind.Sections);
+			const result = facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
 
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
@@ -63,22 +61,20 @@ describe("InsightFacade", function () {
 
 			// Add the datasets to InsightFacade once.
 			// Will *fail* if there is a problem reading ANY dataset.
-			const loadDatasetPromises = [
-				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
-			];
+			const loadDatasetPromises = [facade.addDataset("sections", sections, InsightDatasetKind.Sections)];
 
 			try {
 				await Promise.all(loadDatasetPromises);
-			} catch(err) {
+			} catch (err) {
 				throw new Error(`In PerformQuery Before hook, dataset(s) failed to be added. \n${err}`);
 			}
 		});
 
 		after(async function () {
-			await clearDisk();
+			// await clearDisk();
 		});
 
-		describe("valid queries", function() {
+		describe("valid queries", function () {
 			let validQueries: ITestQuery[];
 			try {
 				validQueries = readFileQueries("valid");
@@ -86,18 +82,21 @@ describe("InsightFacade", function () {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
 
-			validQueries.forEach(function(test: any) {
+			validQueries.forEach(function (test: any) {
 				it(`${test.title}`, function () {
-					return facade.performQuery(test.input).then((result) => {
-						assert.fail("Write your assertions here!");
-					}).catch((err: any) => {
-						assert.fail(`performQuery threw unexpected error: ${err}`);
-					});
+					return facade
+						.performQuery(test.input)
+						.then((result) => {
+							assert.fail("Write your assertions here!");
+						})
+						.catch((err: any) => {
+							assert.fail(`performQuery threw unexpected error: ${err}`);
+						});
 				});
 			});
 		});
 
-		describe("invalid queries", function() {
+		describe("invalid queries", function () {
 			let invalidQueries: ITestQuery[];
 
 			try {
@@ -106,17 +105,20 @@ describe("InsightFacade", function () {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
 
-			invalidQueries.forEach(function(test: any) {
+			invalidQueries.forEach(function (test: any) {
 				it(`${test.title}`, function () {
-					return facade.performQuery(test.input).then((result) => {
-						assert.fail(`performQuery resolved when it should have rejected with ${test.expected}`);
-					}).catch((err: any) => {
-						if (test.expected === "InsightError") {
-							expect(err).to.be.instanceOf(InsightError);
-						} else {
-							assert.fail("Query threw unexpected error");
-						}
-					});
+					return facade
+						.performQuery(test.input)
+						.then((result) => {
+							assert.fail(`performQuery resolved when it should have rejected with ${test.expected}`);
+						})
+						.catch((err: any) => {
+							if (test.expected === "InsightError") {
+								expect(err).to.be.instanceOf(InsightError);
+							} else {
+								assert.fail("Query threw unexpected error");
+							}
+						});
 				});
 			});
 		});
