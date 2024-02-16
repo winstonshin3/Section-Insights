@@ -1,0 +1,19 @@
+{
+	"title": "validLTFAIL",
+	"input": {
+		"WHERE": {
+			"LT": {
+				"sections_fail": -1
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_fail"
+			],
+			"ORDER": "sections_fail"
+		}
+	},
+	"errorExpected": false,
+	"expected": []
+}

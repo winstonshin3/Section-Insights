@@ -1,0 +1,116 @@
+{
+	"title": "validGTPASS",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_pass": 2015
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_pass"
+			],
+			"ORDER": "sections_pass"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "eosc",
+			"sections_pass": 2016
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2019
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2023
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2063
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2083
+		},
+		{
+			"sections_dept": "psyc",
+			"sections_pass": 2095
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2099
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2124
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2134
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2169
+		},
+		{
+			"sections_dept": "psyc",
+			"sections_pass": 2201
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2278
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2286
+		},
+		{
+			"sections_dept": "psyc",
+			"sections_pass": 2289
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2378
+		},
+		{
+			"sections_dept": "econ",
+			"sections_pass": 2438
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2466
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2491
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2498
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2502
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2557
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2655
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2698
+		},
+		{
+			"sections_dept": "engl",
+			"sections_pass": 2994
+		}
+	]
+}
