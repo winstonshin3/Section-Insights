@@ -1,8 +1,28 @@
-import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightResult, InsightError, ResultTooLargeError
+import {
+	IInsightFacade,
+	InsightDataset,
+	InsightDatasetKind,
+	InsightResult,
+	InsightError,
+	ResultTooLargeError,
+	NotFoundError,
 } from "./IInsightFacade";
-import JSZip from "jszip";
-import fs from "fs-extra";
 
+import {
+	makeInsightResult,
+	getFilPromises,
+	assignID,
+	getID,
+	lt,
+	gt,
+	is,
+	eq,
+	validComparison,
+	getData,
+	getOrderKey,
+} from "./HelperFunctions";
+import JSZip = require("jszip");
+import * as fs from "fs-extra";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -10,46 +30,50 @@ import fs from "fs-extra";
  *
  */
 export default class InsightFacade implements IInsightFacade {
+	private datasets: Map<string, any> = new Map<string, any>();
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
-
+		this.datasets = new Map<string, InsightDataset>();
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		if (id === "" || id.includes("_") || id.trim() === "") {
+		let currentInsightDatasets: InsightDataset[] = await this.listDatasets();
+		let currentDatasets = currentInsightDatasets.map((value) => {
+			return value.id;
+		});
+		// console.log("Current Datasets: " + currentDatasets);
+
+		if (id === "" || id.includes("_") || id.trim() === "" || kind !== "sections") {
 			return Promise.reject(new InsightError("Invalid id"));
 		}
-		let zip = await JSZip.loadAsync(content, {base64: true});
-		let folder = zip.folder("courses");
-		if (folder === null) {
+		if (currentDatasets.includes(id)) {
+			return Promise.reject(new InsightError("Dataset already exists"));
+		}
+		let zip;
+
+		// let zip = await JSZip.loadAsync(content, {base64: true});
+
+		try {
+			zip = await JSZip.loadAsync(content, {base64: true});
+			// ... continue with your existing logic ...
+		} catch (e) {
+			// This catches the JSZip error and rejects with an InsightError
+			return Promise.reject(new InsightError("Invalid base64 input"));
+		}
+
+		// let folder = zip.folder(kind);
+		// console.log("Folder: " + folder);
+
+		// if (folder === null) {
+		// 	return Promise.reject(new InsightError("Folder not found in zip"));
+		// }
+		// console.log(zip.files);
+		if (!zip.files["courses/"]) {
 			return Promise.reject(new InsightError("Folder not found in zip"));
 		}
 		let fileInFolder = zip.files;
 		let fileNames = Object.keys(fileInFolder);
-		let filePromises = fileNames.map(async (fileName) => {
-			let file = zip.file(fileName);
-			if (file != null) {
-				try {
-					let jsonContent = await file.async("string");
-					let jsonObject = JSON.parse(jsonContent);
-					let dataPoints = jsonObject.result;
-					return dataPoints.map((data: any) => ({
-						[`${id}_uuid`]: data.id,
-						[`${id}_id`]: data.Course,
-						[`${id}_title`]: data.Title,
-						[`${id}_instructor`]: data.Professor,
-						[`${id}_dept`]: data.Subject,
-						[`${id}_year`]: (data.Subject === "overall") ? 1900 : data.Year,
-						[`${id}_avg`]: data.Avg,
-						[`${id}_pass`]: data.Pass,
-						[`${id}_fail`]: data.Fail,
-						[`${id}_audit`]: data.Audit
-					}));
-				} catch (e) {
-					throw new InsightError("Error processing file: " + fileName);
-				}
-			}
-		});
+		let filePromises = await getFilPromises(fileNames, zip, id);
 		try {
 			let rawResults = await Promise.all(filePromises);
 			let refinedResults: object[][] = rawResults.filter(Array.isArray);
@@ -57,50 +81,37 @@ export default class InsightFacade implements IInsightFacade {
 			for (let result of refinedResults) {
 				array = array.concat(result);
 			}
-			let cacheData: object = this.makeInsightResult(id, kind, array);
+			let cacheData: object = makeInsightResult(id, kind, array);
 			await fs.ensureDir("./data");
 			await fs.writeJson(`./data/${id}`, cacheData);
 		} catch (err) {
 			return Promise.reject(err);
 		}
-		return Promise.resolve(["HI"]);
-	}
-
-	public makeInsightResult(id: string, kind: InsightDatasetKind, array: any[]): InsightResult {
-		let cachedData: {[key: string]: any} = {};
-		cachedData["id"] = id;
-		cachedData["kind"] = kind;
-		cachedData["numRows"] = array.length;
-		cachedData["data"] = array;
-		return cachedData;
+		let insightDatasets: InsightDataset[] = await this.listDatasets();
+		let addedDatasets = insightDatasets.map((value) => {
+			return value.id;
+		});
+		return Promise.resolve(addedDatasets);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
-		return Promise.resolve("");
-	}
-
-	public getID(key: string): string {
-		let parts = key.split("_");
-		if (parts.length > 2) {
-			throw new InsightError("Too many underscores in id");
+		// Check for invalid id
+		if (id === "" || id.includes("_") || id.trim() === "") {
+			return Promise.reject(new InsightError("Invalid id"));
 		}
-		return parts[0];
-	}
 
-	public assignID(currentID: string, id: string[]) {
-		if (id[0] === "null") {
-			id[0] = currentID;
-		} else {
-			if (id[0] !== currentID) {
-				throw new InsightError("Can't have multiple sections!");
+		try {
+			let fileNames = await fs.readdir("./data");
+			// await fs.remove(`./data/${id}.json`);
+			if (fileNames.includes(`${id}`)) {
+				await fs.remove(`./data/${id}`);
 			}
+			// Return the id of the dataset that was removed
+			return Promise.resolve(id);
+			// return id;
+		} catch (err) {
+			return Promise.reject(new InsightError("Error removing dataset: " + err));
 		}
-	}
-
-	public validComparison(query: object, id: string[], type: string): boolean {
-		let currentID = this.getID(Object.keys(query)[0]);
-		this.assignID(currentID, id);
-		return (typeof Object.values(query)[0]) === type;
 	}
 
 	public validateWhere(query: object, id: string[]): boolean {
@@ -118,11 +129,11 @@ export default class InsightFacade implements IInsightFacade {
 				case "LT":
 				case "GT":
 				case "EQ":
-					return result = this.validComparison(value, id, "number");
+					return (result = validComparison(value, id, "number"));
 				case "IS":
-					return result = this.validComparison(value, id, "string");
+					return (result = validComparison(value, id, "string"));
 				case "NOT":
-					return result = !this.validateWhere(value, id);
+					return (result = this.validateWhere(value, id));
 				default:
 					throw new InsightError("Invalid filter key: " + key);
 			}
@@ -156,51 +167,13 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("Items in order must be in columns too!");
 		}
 		for (let item of columns) {
-			if (!item.includes(id[0]) || !(order.includes(id[0]))) {
+			if (!item.includes(id[0]) || !order.includes(id[0])) {
 				throw new InsightError("One database at a time!");
 			}
 		}
 	}
 
-	public lt(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
-		if (skeys.includes(ckey)) {
-			return cvalue > (svalue[skeys.indexOf(ckey)] as number);
-		}
-		return false;
-	}
-
-	public gt(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
-		if (skeys.includes(ckey)) {
-			return cvalue < (svalue[skeys.indexOf(ckey)] as number);
-		}
-		return false;
-	}
-
-	public eq(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
-		if (skeys.includes(ckey)) {
-			return cvalue === (svalue[skeys.indexOf(ckey)] as number);
-		}
-		return false;
-	}
-
-	public is(ckey: string, cvalue: string, skeys: string[], svalue: any[]): boolean {
-		if (skeys.includes(ckey)) {
-			let string = (svalue[skeys.indexOf(ckey)] as string);
-			if (string.startsWith("*") && string.endsWith("*")) {
-				return string.includes(cvalue);
-			} else if (string.startsWith("*")) {
-				return string.startsWith(cvalue);
-			} else if (string.endsWith("*")) {
-				return string.endsWith(cvalue);
-			} else {
-				return string === cvalue;
-			}
-		}
-		return true;
-	}
-
 	public performWhere(query: object, subject: object): boolean {
-		// console.log(query);
 		let result: boolean = true;
 		let skeys = Object.keys(subject);
 		let svalues = Object.values(subject);
@@ -220,15 +193,15 @@ export default class InsightFacade implements IInsightFacade {
 					}
 					break;
 				case "LT":
-					return result = this.lt(ckey, (cvalue as number), skeys, svalues);
+					return (result = lt(ckey, cvalue as number, skeys, svalues));
 				case "GT":
-					return result =  this.gt(ckey, (cvalue as number), skeys, svalues);
+					return (result = gt(ckey, cvalue as number, skeys, svalues));
 				case "EQ":
-					return result = this.eq(ckey, (cvalue as number), skeys, svalues);
+					return (result = eq(ckey, cvalue as number, skeys, svalues));
 				case "IS":
-					return result = this.is(ckey, (cvalue as string), skeys, svalues);
+					return (result = is(ckey, cvalue as string, skeys, svalues));
 				case "NOT":
-					return result = !this.performWhere(value, subject);
+					return (result = !this.performWhere(value, subject));
 				default:
 					throw new InsightError("Invalid filter key: " + key);
 			}
@@ -239,11 +212,19 @@ export default class InsightFacade implements IInsightFacade {
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let jsonContent = JSON.stringify(query);
 		let queryContent = JSON.parse(jsonContent);
+		let queryContentNames = Object.keys(queryContent);
+		if (!queryContentNames.includes("WHERE") || !queryContentNames.includes("OPTIONS")) {
+			throw new InsightError("Invalid query");
+		}
 		let idArray: string[] = ["null"];
 		let typesMatch: boolean = this.validateWhere(queryContent.WHERE, idArray); // This throws insightErrors. true;
-		let results: object[] = await this.getData();
+		if (!typesMatch) {
+			throw new InsightError("Types don't match!");
+		}
+		let results: object[] = await getData();
 		let filteredResults: any[] = [];
 		for (let section of results) {
+			// console.log(this.performWhere(queryContent.WHERE, section));
 			if (this.performWhere(queryContent.WHERE, section)) {
 				filteredResults.push(section);
 			}
@@ -251,6 +232,7 @@ export default class InsightFacade implements IInsightFacade {
 				throw new ResultTooLargeError("Its over 5000 queries!");
 			}
 		}
+		// console.log(filteredResults);
 		this.validateOption(queryContent.OPTIONS, idArray);
 		let columnsPair: [string, any] = Object.entries(queryContent.OPTIONS)[0];
 		let columns: string[] = Object.values(columnsPair)[1];
@@ -262,66 +244,61 @@ export default class InsightFacade implements IInsightFacade {
 				}
 			}
 		}
-		let orderKey = this.getOrderKey(queryContent.OPTIONS);
-		filteredResults.sort((a,b) =>
-			(a[orderKey] - b[orderKey])
-		);
+		let orderKey = getOrderKey(queryContent.OPTIONS);
+		filteredResults.sort((a, b) => a[orderKey] - b[orderKey]);
 		return Promise.resolve(filteredResults);
 	}
 
-	public getOrderKey(query: object): string {
-		let columnsPair = Object.entries(query)[1];
-		return Object.values(columnsPair)[1];
-	}
-
-	public async getData() {
-		let fileNames = await fs.readdir("./data");
-		let filePromises = fileNames.map(async (fileName) => {
-			try {
-				let fileContent = await fs.readJson(`./data/${fileName}`);
-				let jsonString = JSON.stringify(fileContent);
-				let data = JSON.parse(jsonString);
-				return data.data;
-			} catch (err) {
-				throw new InsightError("Corrupted persisted file");
-			}
-		});
-		let array: object[] = [];
-		try {
-			let rawResults: any[] = await Promise.all(filePromises);
-			let refinedResults: object[][] = rawResults.filter(Array.isArray);
-			for (let result of refinedResults) {
-				array = array.concat(result);
-			}
-			return array;
-		} catch (err) {
-			throw new InsightError("Blah");
-		}
-	}
-
 	public async listDatasets(): Promise<InsightDataset[]> {
-		let fileNames = await fs.readdir("./data");
-		let filePromises = fileNames.map(async (fileName) => {
-			try {
-				let fileContent = await fs.readJson(`./data/${fileName}`);
-				let jsonString = JSON.stringify(fileContent);
-				let data = JSON.parse(jsonString);
-				return {
-					id: data.id,
-					kind: data.kind,
-					numRows: data.numRows
-				};
-			} catch (err) {
-				throw new InsightError("Corrupted persisted file");
-			}
-		});
-		let results: InsightDataset[];
 		try {
-			results = await Promise.all(filePromises);
-		} catch (err) {
-			throw new InsightError("Blah");
-		}
-		return Promise.resolve(results);
-	}
-}
+			// Check if the './data' directory exists. If not, return an empty array
+			await fs.ensureDir("./data");
 
+			let fileNames = await fs.readdir("./data");
+			let filePromises = fileNames.map(async (fileName) => {
+				try {
+					let fileContent = await fs.readJson(`./data/${fileName}`);
+					let jsonString = JSON.stringify(fileContent);
+					let data = JSON.parse(jsonString);
+					return {
+						id: data.id,
+						kind: data.kind,
+						numRows: data.numRows,
+					};
+				} catch (err) {
+					throw new InsightError("Corrupted persisted file");
+				}
+			});
+
+			return await Promise.all(filePromises);
+		} catch (err) {
+			throw new InsightError("Error listing datasets: " + err);
+		}
+	}
+
+	// public async listDatasets(): Promise<InsightDataset[]> {
+	// 	let fileNames = await fs.readdir("./data");
+	// 	let filePromises = fileNames.map(async (fileName) => {
+	// 		try {
+
+	// 			let fileContent = await fs.readJson(`./data/${fileName}`);
+	// 			let jsonString = JSON.stringify(fileContent);
+	// 			let data = JSON.parse(jsonString);
+	// 			return {
+	// 				id: data.id,
+	// 				kind: data.kind,
+	// 				numRows: data.numRows
+	// 			};
+	// 		} catch (err) {
+	// 			throw new InsightError("Corrupted persisted file");
+	// 		}
+	// 	});
+	// 	let results: InsightDataset[];
+	// 	try {
+	// 		results = await Promise.all(filePromises);
+	// 	} catch (err) {
+	// 		throw new InsightError("Blah");
+	// 	}
+	// 	return Promise.resolve(results);
+	// }
+}
