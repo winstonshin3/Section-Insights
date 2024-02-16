@@ -1,4 +1,4 @@
-import {InsightDatasetKind, InsightError, InsightResult} from "./IInsightFacade";
+import {InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
 // TODO
@@ -26,18 +26,18 @@ export function eq(ckey: string, cvalue: number, skeys: string[], svalue: any[])
 
 export function is(ckey: string, cvalue: string, skeys: string[], svalue: any[]): boolean {
 	if (skeys.includes(ckey)) {
-		let string = svalue[skeys.indexOf(ckey)] as string;
+		let string = (svalue[skeys.indexOf(ckey)] as string);
 		if (string === "" || string === "*" || string === "**") {
 			return true;
 		} else if (string.startsWith("*") && string.endsWith("*")) {
-			string = string.slice(1, -1);
+			string = string.slice(1,-1);
 			return string.includes(cvalue);
 		} else if (string.startsWith("*")) {
 			string = string.slice(1);
 			return string.startsWith(cvalue);
 		} else if (string.endsWith("*")) {
 			let asteriskIndex = string.indexOf("*");
-			string = string.slice(0, asteriskIndex);
+			string = string.slice(0,asteriskIndex);
 			return string.endsWith(cvalue);
 		} else {
 			return string === cvalue;
@@ -76,7 +76,7 @@ export function validateOption(query: object, id: string[]): void {
 		throw new InsightError("Items in order must be in columns too!");
 	}
 	for (let item of columns) {
-		if (!item.includes(id[0]) || !order.includes(id[0])) {
+		if (!item.includes(id[0]) || !(order.includes(id[0]))) {
 			throw new InsightError("One database at a time!");
 		}
 	}
@@ -88,69 +88,70 @@ let validDatasetIds = ["sections", "ubc"];
 
 function validateMValue(values: any[], type: string) {
 	if (values.length !== 1) {
-		throw new Error("Invalid number of keys");
+		throw new InsightError("Invalid number of keys");
 	}
 	let value = values[0];
-	if (typeof value !== "number") {
-		throw new Error("Wrong type!");
+	if ((typeof value) !== "number") {
+		throw new InsightError("Wrong type!");
 	}
+
 }
 
 function validateSValue(values: any[], type: string) {
 	if (values.length !== 1) {
-		throw new Error("Invalid number of keys");
+		throw new InsightError("Invalid number of keys");
 	}
 	let value = values[0];
-	if (typeof value !== "string") {
-		throw new Error("Wrong type!");
+	if ((typeof value) !== "string") {
+		throw new InsightError("Wrong type!");
 	}
 	if (value === "" || value === "**" || value === "*") {
 		// return console.log("You reached the end");
 	}
 	let asteriskParts = value.split("*");
 	if (asteriskParts.length > 3) {
-		throw new Error("Too many asterisks");
+		throw new InsightError("Too many asterisks");
 	} else if (asteriskParts.length === 3) {
 		if (asteriskParts[1] === "") {
-			throw new Error("Asterisks can only be the first or last character");
+			throw new InsightError("Asterisks can only be the first or last character");
 		}
 		if (asteriskParts[0] !== "" && asteriskParts[1] !== "" && asteriskParts[2] !== "") {
-			throw new Error("Asterisks can only be the first or last character");
+			throw new InsightError("Asterisks can only be the first or last character");
 		}
 	} else if (asteriskParts.length === 2) {
 		if (asteriskParts[0] !== "" && asteriskParts[1] !== "") {
-			throw new Error("Asterisks can only be the first or last character");
+			throw new ResultTooLargeError("Asterisks can only be the first or last character");
 		}
 	}
 }
 
-function validateKey(keys: string[], type: string): void {
+function validateKey(keys: string[], type: string, currentDatasets: string[]): void {
 	if (keys.length !== 1) {
-		throw new Error("Invalid number of keys");
+		throw new InsightError("Invalid number of keys");
 	}
 	let key = keys[0];
 	if (key === "") {
-		throw new Error("Missing key");
+		throw new InsightError("Missing key");
 	}
 	let keyParts = key.split("_");
 	if (keyParts.length !== 2) {
-		throw new Error("Incorrect number of underscores in key");
+		throw new InsightError("Incorrect number of underscores in key");
 	}
 	let section = keyParts[0];
 	let smkey = keyParts[1];
-	if (!validDatasetIds.includes(section)) {
-		throw new Error("Dataset not added yet");
+	if (!currentDatasets.includes(section)) {
+		throw new InsightError("Dataset not added yet");
 	}
 	if (type === "number" && !validMKeys.includes(smkey)) {
-		throw new Error("Invalid mkey");
+		throw new InsightError("Invalid mkey");
 	}
 	if (type === "string" && !validSKeys.includes(smkey)) {
-		throw new Error("Invalid skey");
+		throw new InsightError("Invalid skey");
 	}
 }
 
-export function validComparison(query: object, id: string[], type: string): boolean {
-	validateKey(Object.keys(query), type);
+export function validComparison(query: object, id: string[], type: string, currentDatasets: string[]): boolean {
+	validateKey(Object.keys(query), type, currentDatasets);
 	if (type === "string") {
 		validateSValue(Object.values(query), type);
 	} else {
@@ -158,7 +159,7 @@ export function validComparison(query: object, id: string[], type: string): bool
 	}
 	let currentID = getID(Object.keys(query)[0]);
 	assignID(currentID, id);
-	return typeof Object.values(query)[0] === type;
+	return (typeof Object.values(query)[0]) === type;
 }
 
 export function getID(key: string): string {
@@ -183,6 +184,7 @@ export function getOrderKey(query: object): string {
 	let columnsPair = Object.entries(query)[1];
 	return Object.values(columnsPair)[1];
 }
+
 
 export async function getData() {
 	let fileNames = await fs.readdir("./data");
@@ -241,10 +243,10 @@ export function getMap(dataPoints: any, section: string) {
 		[`${section}_title`]: data.Title as string,
 		[`${section}_instructor`]: data.Professor as string,
 		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: data.Subject === "overall" ? 1900 : (data.Year as number),
+		[`${section}_year`]: (data.Subject === "overall") ? 1900 : data.Year as number,
 		[`${section}_avg`]: data.Avg as number,
 		[`${section}_pass`]: data.Pass as number,
 		[`${section}_fail`]: data.Fail as number,
-		[`${section}_audit`]: data.Audit as number,
+		[`${section}_audit`]: data.Audit as number
 	}));
 }

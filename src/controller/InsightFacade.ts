@@ -20,6 +20,7 @@ import {
 	validComparison,
 	getData,
 	getOrderKey,
+	validateOption
 } from "./HelperFunctions";
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
@@ -114,7 +115,7 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	public validateWhere(query: object, id: string[]): boolean {
+	public validateWhere(query: object, id: string[], currentDatasets: string[]): boolean {
 		// Currently: checks if mComparison's and sComparison's type are number and string.
 		// checks if filter key is invalid and throws insight error.
 		let result: boolean = true;
@@ -123,54 +124,22 @@ export default class InsightFacade implements IInsightFacade {
 				case "AND":
 				case "OR":
 					for (let item of value) {
-						result = result && this.validateWhere(item, id);
+						result = result && this.validateWhere(item, id, currentDatasets);
 					}
 					break;
 				case "LT":
 				case "GT":
 				case "EQ":
-					return (result = validComparison(value, id, "number"));
+					return (result = validComparison(value, id, "number", currentDatasets));
 				case "IS":
-					return (result = validComparison(value, id, "string"));
+					return (result = validComparison(value, id, "string", currentDatasets));
 				case "NOT":
-					return (result = this.validateWhere(value, id));
+					return (result = this.validateWhere(value, id, currentDatasets));
 				default:
 					throw new InsightError("Invalid filter key: " + key);
 			}
 		});
 		return result;
-	}
-
-	public validateOption(query: object, id: string[]): void {
-		let keys = Object.keys(query);
-		if (!keys.includes("COLUMNS")) {
-			throw new InsightError("No columns!");
-		}
-		let columns: string[] = [];
-		let order: string = "null";
-		Object.entries(query).forEach(([key, value]) => {
-			switch (key) {
-				case "COLUMNS":
-					if (!Array.isArray(value) || value.length === 0) {
-						throw new InsightError("Column must be non-empty!");
-					}
-					columns = value;
-					break;
-				case "ORDER":
-					order = value;
-					break;
-				default:
-					throw new InsightError("Invalid Key: " + key);
-			}
-		});
-		if (!columns.includes(order)) {
-			throw new InsightError("Items in order must be in columns too!");
-		}
-		for (let item of columns) {
-			if (!item.includes(id[0]) || !order.includes(id[0])) {
-				throw new InsightError("One database at a time!");
-			}
-		}
 	}
 
 	public performWhere(query: object, subject: object): boolean {
@@ -216,8 +185,9 @@ export default class InsightFacade implements IInsightFacade {
 		if (!queryContentNames.includes("WHERE") || !queryContentNames.includes("OPTIONS")) {
 			throw new InsightError("Invalid query");
 		}
+		let currentDatasets = await fs.readdir("./data");
 		let idArray: string[] = ["null"];
-		let typesMatch: boolean = this.validateWhere(queryContent.WHERE, idArray); // This throws insightErrors. true;
+		let typesMatch: boolean = this.validateWhere(queryContent.WHERE, idArray, currentDatasets); // This throws insightErrors. true;
 		if (!typesMatch) {
 			throw new InsightError("Types don't match!");
 		}
@@ -233,7 +203,7 @@ export default class InsightFacade implements IInsightFacade {
 			}
 		}
 		// console.log(filteredResults);
-		this.validateOption(queryContent.OPTIONS, idArray);
+		validateOption(queryContent.OPTIONS, idArray);
 		let columnsPair: [string, any] = Object.entries(queryContent.OPTIONS)[0];
 		let columns: string[] = Object.values(columnsPair)[1];
 		for (let result of filteredResults) {
