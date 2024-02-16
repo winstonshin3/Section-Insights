@@ -51,23 +51,6 @@ describe("InsightFacade", function () {
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 	});
-	describe("ListDataset", function () {
-		beforeEach(function () {
-			// This section resets the insightFacade instance
-			// This runs before each test
-			facade = new InsightFacade();
-		});
-
-		afterEach(async function () {
-			// This section resets the data directory (removing any cached data)
-			// This runs after each test, which should make each test independent of the previous one
-			// await clearDisk();
-		});
-		it ("add once", async function() {
-			const result = await facade.listDatasets();
-			return expect(result).to.have.deep.members([{id: "sections", kind: InsightDatasetKind.Sections, numRows: 64612}]);
-		});
-	});
 	/*
 	 * This test suite dynamically generates tests from the JSON files in test/resources/queries.
 	 * You can and should still make tests the normal way, this is just a convenient tool for a majority of queries.
@@ -113,29 +96,23 @@ describe("InsightFacade", function () {
 				});
 			});
 		});
+	});
+	describe("ListDataset", function () {
+		beforeEach(function () {
+			// This section resets the insightFacade instance
+			// This runs before each test
+			facade = new InsightFacade();
+		});
 
-		// describe("invalid queries", function() {
-		// 	let invalidQueries: ITestQuery[];
-		//
-		// 	try {
-		// 		invalidQueries = readFileQueries("invalid");
-		// 	} catch (e: unknown) {
-		// 		expect.fail(`Failed to read one or more test queries. ${e}`);
-		// 	}
-		//
-		// 	invalidQueries.forEach(function(test: any) {
-		// 		it(`${test.title}`, function () {
-		// 			return facade.performQuery(test.input).then((result) => {
-		// 				assert.fail(`performQuery resolved when it should have rejected with ${test.expected}`);
-		// 			}).catch((err: any) => {
-		// 				if (test.expected === "InsightError") {
-		// 					expect(err).to.be.instanceOf(InsightError);
-		// 				} else {
-		// 					assert.fail("Query threw unexpected error");
-		// 				}
-		// 			});
-		// 		});
-		// 	});
-		// });
+		afterEach(async function () {
+			// This section resets the data directory (removing any cached data)
+			// This runs after each test, which should make each test independent of the previous one
+			// await clearDisk();
+		});
+		it ("add once", async function() {
+			const result = await facade.listDatasets();
+			let expected = [{id: "sections", kind: InsightDatasetKind.Sections, numRows: 64612}];
+			return expect(result).to.have.deep.members(expected);
+		});
 	});
 });
