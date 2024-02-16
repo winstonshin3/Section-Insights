@@ -104,10 +104,10 @@ describe("InsightFacade", function () {
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 
-		// it ("should reject with invalid kind", function() {
-		//     const result = facade.addDataset("invalidKind", sections, InsightDatasetKind.Rooms);
-		//     return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
+		it("should reject with invalid kind", function () {
+			const result = facade.addDataset("invalidKind", sections, InsightDatasetKind.Rooms);
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
 	});
 
 	describe("RemoveDataset", function () {

@@ -26,18 +26,18 @@ export function eq(ckey: string, cvalue: number, skeys: string[], svalue: any[])
 
 export function is(ckey: string, cvalue: string, skeys: string[], svalue: any[]): boolean {
 	if (skeys.includes(ckey)) {
-		let string = (svalue[skeys.indexOf(ckey)] as string);
+		let string = svalue[skeys.indexOf(ckey)] as string;
 		if (string === "" || string === "*" || string === "**") {
 			return true;
 		} else if (string.startsWith("*") && string.endsWith("*")) {
-			string = string.slice(1,-1);
+			string = string.slice(1, -1);
 			return string.includes(cvalue);
 		} else if (string.startsWith("*")) {
 			string = string.slice(1);
 			return string.startsWith(cvalue);
 		} else if (string.endsWith("*")) {
 			let asteriskIndex = string.indexOf("*");
-			string = string.slice(0,asteriskIndex);
+			string = string.slice(0, asteriskIndex);
 			return string.endsWith(cvalue);
 		} else {
 			return string === cvalue;
@@ -45,9 +45,14 @@ export function is(ckey: string, cvalue: string, skeys: string[], svalue: any[])
 	}
 	return true;
 }
-// TODO
-// export function validateANDOR() {
-// }
+export function validateANDOR(value: any) {
+	if (!Array.isArray(value)) {
+		throw new InsightError("Must contain an array");
+	}
+	if (value.length === 0) {
+		throw new InsightError("Cannot be an empty array");
+	}
+}
 
 // TODO
 export function validateOption(query: object, id: string[]): void {
@@ -76,7 +81,7 @@ export function validateOption(query: object, id: string[]): void {
 		throw new InsightError("Items in order must be in columns too!");
 	}
 	for (let item of columns) {
-		if (!item.includes(id[0]) || !(order.includes(id[0]))) {
+		if (!item.includes(id[0]) || !order.includes(id[0])) {
 			throw new InsightError("One database at a time!");
 		}
 	}
@@ -91,10 +96,9 @@ function validateMValue(values: any[], type: string) {
 		throw new InsightError("Invalid number of keys");
 	}
 	let value = values[0];
-	if ((typeof value) !== "number") {
+	if (typeof value !== "number") {
 		throw new InsightError("Wrong type!");
 	}
-
 }
 
 function validateSValue(values: any[], type: string) {
@@ -102,7 +106,7 @@ function validateSValue(values: any[], type: string) {
 		throw new InsightError("Invalid number of keys");
 	}
 	let value = values[0];
-	if ((typeof value) !== "string") {
+	if (typeof value !== "string") {
 		throw new InsightError("Wrong type!");
 	}
 	if (value === "" || value === "**" || value === "*") {
@@ -151,6 +155,9 @@ function validateKey(keys: string[], type: string, currentDatasets: string[]): v
 }
 
 export function validComparison(query: object, id: string[], type: string, currentDatasets: string[]): boolean {
+	if (typeof query !== "object" || query === null) {
+		throw new InsightError("Query must be a valid object");
+	}
 	validateKey(Object.keys(query), type, currentDatasets);
 	if (type === "string") {
 		validateSValue(Object.values(query), type);
@@ -159,7 +166,7 @@ export function validComparison(query: object, id: string[], type: string, curre
 	}
 	let currentID = getID(Object.keys(query)[0]);
 	assignID(currentID, id);
-	return (typeof Object.values(query)[0]) === type;
+	return typeof Object.values(query)[0] === type;
 }
 
 export function getID(key: string): string {
@@ -184,7 +191,6 @@ export function getOrderKey(query: object): string {
 	let columnsPair = Object.entries(query)[1];
 	return Object.values(columnsPair)[1];
 }
-
 
 export async function getData() {
 	let fileNames = await fs.readdir("./data");
@@ -243,10 +249,10 @@ export function getMap(dataPoints: any, section: string) {
 		[`${section}_title`]: data.Title as string,
 		[`${section}_instructor`]: data.Professor as string,
 		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: (data.Subject === "overall") ? 1900 : data.Year as number,
+		[`${section}_year`]: data.Subject === "overall" ? 1900 : (data.Year as number),
 		[`${section}_avg`]: data.Avg as number,
 		[`${section}_pass`]: data.Pass as number,
 		[`${section}_fail`]: data.Fail as number,
-		[`${section}_audit`]: data.Audit as number
+		[`${section}_audit`]: data.Audit as number,
 	}));
 }
