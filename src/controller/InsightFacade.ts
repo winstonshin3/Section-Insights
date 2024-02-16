@@ -20,7 +20,7 @@ import {
 	validComparison,
 	getData,
 	getOrderKey,
-	validateOption
+	validateOption,
 } from "./HelperFunctions";
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
@@ -179,13 +179,21 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		let jsonContent = JSON.stringify(query);
-		let queryContent = JSON.parse(jsonContent);
+		let jsonContent;
+		let queryContent;
+		try {
+			jsonContent = JSON.stringify(query);
+			queryContent = JSON.parse(jsonContent);
+		} catch (err) {
+			throw new InsightError("Invalid query");
+		}
+
 		let queryContentNames = Object.keys(queryContent);
 		if (!queryContentNames.includes("WHERE") || !queryContentNames.includes("OPTIONS")) {
 			throw new InsightError("Invalid query");
 		}
 		let currentDatasets = await fs.readdir("./data");
+		// console.log(currentDatasets);
 		let idArray: string[] = ["null"];
 		let typesMatch: boolean = this.validateWhere(queryContent.WHERE, idArray, currentDatasets); // This throws insightErrors. true;
 		if (!typesMatch) {
@@ -245,30 +253,4 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("Error listing datasets: " + err);
 		}
 	}
-
-	// public async listDatasets(): Promise<InsightDataset[]> {
-	// 	let fileNames = await fs.readdir("./data");
-	// 	let filePromises = fileNames.map(async (fileName) => {
-	// 		try {
-
-	// 			let fileContent = await fs.readJson(`./data/${fileName}`);
-	// 			let jsonString = JSON.stringify(fileContent);
-	// 			let data = JSON.parse(jsonString);
-	// 			return {
-	// 				id: data.id,
-	// 				kind: data.kind,
-	// 				numRows: data.numRows
-	// 			};
-	// 		} catch (err) {
-	// 			throw new InsightError("Corrupted persisted file");
-	// 		}
-	// 	});
-	// 	let results: InsightDataset[];
-	// 	try {
-	// 		results = await Promise.all(filePromises);
-	// 	} catch (err) {
-	// 		throw new InsightError("Blah");
-	// 	}
-	// 	return Promise.resolve(results);
-	// }
 }
