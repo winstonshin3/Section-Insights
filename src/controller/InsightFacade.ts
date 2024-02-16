@@ -3,6 +3,7 @@ import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightResult, Insig
 import JSZip from "jszip";
 import fs from "fs-extra";
 
+
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
@@ -11,6 +12,7 @@ import fs from "fs-extra";
 export default class InsightFacade implements IInsightFacade {
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
+
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
@@ -37,11 +39,11 @@ export default class InsightFacade implements IInsightFacade {
 						[`${id}_title`]: data.Title,
 						[`${id}_instructor`]: data.Professor,
 						[`${id}_dept`]: data.Subject,
-						[`${id}_year`]: data.Year,
+						[`${id}_year`]: (data.Subject === "overall") ? 1900 : data.Year,
 						[`${id}_avg`]: data.Avg,
 						[`${id}_pass`]: data.Pass,
 						[`${id}_fail`]: data.Fail,
-						[`${id}_audit`]: data.Audit,
+						[`${id}_audit`]: data.Audit
 					}));
 				} catch (e) {
 					throw new InsightError("Error processing file: " + fileName);
@@ -322,3 +324,4 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.resolve(results);
 	}
 }
+

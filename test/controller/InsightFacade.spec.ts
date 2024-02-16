@@ -4,13 +4,15 @@ import {
 	InsightError,
 	ResultTooLargeError
 } from "../../src/controller/IInsightFacade";
+
 import InsightFacade from "../../src/controller/InsightFacade";
-
+import chai = require("chai");
 import {assert, expect, use} from "chai";
-import chaiAsPromised from "chai-as-promised";
+// import chaiAsPromised from "chai-as-promised";
+import * as chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives, readFileQueries} from "../TestUtil";
-
-use(chaiAsPromised);
+chai.use(require("chai-as-promised"));
+// use(chaiAsPromised);
 
 export interface ITestQuery {
 	title: string;
@@ -26,7 +28,9 @@ describe("InsightFacade", function () {
 
 	before(async function () {
 		// This block runs once and loads the datasets.
-		sections = await getContentFromArchives("pair.zip");
+		// sections = await getContentFromArchives("pair.zip");
+		sections = await getContentFromArchives("testData.zip");
+
 
 		// Just in case there is anything hanging around from a previous run of the test suite
 		// await clearDisk();
@@ -46,7 +50,6 @@ describe("InsightFacade", function () {
 		});
 
 		it("Fail to addDataset because of blank id", async function () {
-
 			const result = facade.addDataset("", sections, InsightDatasetKind.Sections);
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
@@ -75,7 +78,7 @@ describe("InsightFacade", function () {
 			// await clearDisk();
 		});
 
-		describe("valid queries", function() {
+		describe("valid queries", function () {
 			let validQueries: ITestQuery[];
 			try {
 				validQueries = readFileQueries("valid");
@@ -83,7 +86,7 @@ describe("InsightFacade", function () {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
 
-			validQueries.forEach(function(test: any) {
+			validQueries.forEach(function (test: any) {
 				it(`${test.title}`, function () {
 					return facade.performQuery(test.input).then((result) => {
 						expect(result).to.have.deep.members(test.expected);
