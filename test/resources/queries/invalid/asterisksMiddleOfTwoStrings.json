@@ -1,0 +1,18 @@
+{
+	"title": "asterisksMiddleOfTwoStrings",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "s*s"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

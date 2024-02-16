@@ -1,0 +1,18 @@
+{
+	"title": "IsShouldBeString",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": 0
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
