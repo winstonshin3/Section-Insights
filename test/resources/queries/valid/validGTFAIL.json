@@ -1,0 +1,80 @@
+{
+	"title": "validGTFAIL",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_fail": 200
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_fail"
+			],
+			"ORDER": "sections_fail"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "math",
+			"sections_fail": 203
+		},
+		{
+			"sections_dept": "biol",
+			"sections_fail": 204
+		},
+		{
+			"sections_dept": "math",
+			"sections_fail": 205
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 213
+		},
+		{
+			"sections_dept": "econ",
+			"sections_fail": 221
+		},
+		{
+			"sections_dept": "math",
+			"sections_fail": 222
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 226
+		},
+		{
+			"sections_dept": "biol",
+			"sections_fail": 230
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 235
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 250
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 251
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 260
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 264
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 266
+		},
+		{
+			"sections_dept": "chem",
+			"sections_fail": 287
+		}
+	]
+}

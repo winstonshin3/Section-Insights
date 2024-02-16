@@ -1,0 +1,19 @@
+{
+	"title": "invalidLTAudit",
+	"input": {
+		"WHERE": {
+			"LT": {
+				"sections_audit": 1
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_audit"
+			],
+			"ORDER": "sections_audit"
+		}
+	},
+	"errorExpected": true,
+	"expected": "ResultTooLargeError"
+}

@@ -9,16 +9,17 @@ export function lt(ckey: string, cvalue: number, skeys: string[], svalue: any[])
 	return false;
 }
 // TODO
+
 export function gt(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
 	if (skeys.includes(ckey)) {
-		return cvalue < (svalue[skeys.indexOf(ckey)] as number);
+		return cvalue < svalue[skeys.indexOf(ckey)];
 	}
 	return false;
 }
 // TODO
 export function eq(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
 	if (skeys.includes(ckey)) {
-		return cvalue === (svalue[skeys.indexOf(ckey)] as number);
+		return cvalue === svalue[skeys.indexOf(ckey)];
 	}
 	return false;
 }
@@ -244,12 +245,12 @@ export async function getFilPromises(fileNames: string[], zip: JSZip, id: string
 
 export function getMap(dataPoints: any, section: string) {
 	return dataPoints.map((data: any) => ({
-		[`${section}_uuid`]: data.id as number,
+		[`${section}_uuid`]: data.id.toString(),
 		[`${section}_id`]: data.Course as string,
 		[`${section}_title`]: data.Title as string,
 		[`${section}_instructor`]: data.Professor as string,
 		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: data.Subject === "overall" ? 1900 : (data.Year as number),
+		[`${section}_year`]: data.Subject === "overall" ? 1900 : Number(data.Year),
 		[`${section}_avg`]: data.Avg as number,
 		[`${section}_pass`]: data.Pass as number,
 		[`${section}_fail`]: data.Fail as number,

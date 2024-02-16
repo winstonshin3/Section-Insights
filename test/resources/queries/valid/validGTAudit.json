@@ -1,0 +1,140 @@
+{
+	"title": "validGTAudit",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_audit": 10
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_audit"
+			],
+			"ORDER": "sections_audit"
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 11
+		},
+		{
+			"sections_dept": "frst",
+			"sections_audit": 11
+		},
+		{
+			"sections_dept": "frst",
+			"sections_audit": 11
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_audit": 11
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "fren",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "biol",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "biol",
+			"sections_audit": 12
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 13
+		},
+		{
+			"sections_dept": "cnto",
+			"sections_audit": 13
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 14
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_audit": 14
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 15
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 15
+		},
+		{
+			"sections_dept": "cons",
+			"sections_audit": 15
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 17
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 18
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_audit": 18
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 19
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 19
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 19
+		},
+		{
+			"sections_dept": "frst",
+			"sections_audit": 19
+		},
+		{
+			"sections_dept": "frst",
+			"sections_audit": 19
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 20
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 21
+		},
+		{
+			"sections_dept": "cpsc",
+			"sections_audit": 21
+		},
+		{
+			"sections_dept": "rhsc",
+			"sections_audit": 23
+		}
+	]
+}

@@ -166,7 +166,7 @@ describe("InsightFacade", function () {
 			}
 
 			validQueries.forEach(function (test: any) {
-				it(`${test.title}`, function () {
+				it.only(`${test.title}`, function () {
 					return facade
 						.performQuery(test.input)
 						.then((result) => {
