@@ -1,0 +1,18 @@
+{
+	"title": "validOneAsterisksOnly",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "*"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "ResultTooLargeError"
+}

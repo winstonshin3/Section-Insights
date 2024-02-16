@@ -1,0 +1,18 @@
+{
+	"title": "AsterisksCanOnlyBeTheFirstOrLastCharacters",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "*a*b*"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
