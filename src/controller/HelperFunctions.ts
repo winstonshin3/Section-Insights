@@ -28,18 +28,18 @@ export async function getFilPromises(fileNames: string[], zip: JSZip, id: string
 	return filePromises;
 }
 
-export function getMap(dataPoints: any, id: string) {
+export function getMap(dataPoints: any, section: string) {
 	return dataPoints.map((data: any) => ({
-		[`${id}_uuid`]: data.id,
-		[`${id}_id`]: data.Course,
-		[`${id}_title`]: data.Title,
-		[`${id}_instructor`]: data.Professor,
-		[`${id}_dept`]: data.Subject,
-		[`${id}_year`]: data.Subject === "overall" ? 1900 : data.Year,
-		[`${id}_avg`]: data.Avg,
-		[`${id}_pass`]: data.Pass,
-		[`${id}_fail`]: data.Fail,
-		[`${id}_audit`]: data.Audit,
+		[`${section}_uuid`]: data.id as number,
+		[`${section}_id`]: data.Course as string,
+		[`${section}_title`]: data.Title as string,
+		[`${section}_instructor`]: data.Professor as string,
+		[`${section}_dept`]: data.Subject as string,
+		[`${section}_year`]: data.Subject === "overall" ? 1900 : (data.Year as number),
+		[`${section}_avg`]: data.Avg as number,
+		[`${section}_pass`]: data.Pass as number,
+		[`${section}_fail`]: data.Fail as number,
+		[`${section}_audit`]: data.Audit as number,
 	}));
 }
 
