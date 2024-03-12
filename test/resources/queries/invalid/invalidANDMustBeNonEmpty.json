@@ -1,14 +1,22 @@
 {
-	"title": "gtWrongValueType",
+	"title": "invalidANDMustBeNonEmpty",
 	"input": {
 		"WHERE": {
-			"GT": {
-				"sections_avg": "abc"
-			}
+			"OR": [
+				{
+					"AND": []
+				},
+				{
+					"EQ": {
+						"sections_avg": 95
+					}
+				}
+			]
 		},
 		"OPTIONS": {
 			"COLUMNS": [
 				"sections_dept",
+				"sections_id",
 				"sections_avg"
 			],
 			"ORDER": "sections_avg"

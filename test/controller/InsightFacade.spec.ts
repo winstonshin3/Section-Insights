@@ -1,17 +1,12 @@
-import {
-	IInsightFacade,
-	InsightDatasetKind,
-	InsightError,
-	ResultTooLargeError,
-} from "../../src/controller/IInsightFacade";
+import {InsightDatasetKind, InsightError, ResultTooLargeError,} from "../../src/controller/IInsightFacade";
 
 import InsightFacade from "../../src/controller/InsightFacade";
-import chai = require("chai");
-import {assert, expect, use} from "chai";
+import {assert, expect} from "chai";
 import * as fs from "fs-extra";
 // import chaiAsPromised from "chai-as-promised";
-import * as chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives, readFileQueries} from "../TestUtil";
+import chai = require("chai");
+
 chai.use(require("chai-as-promised"));
 // use(chaiAsPromised);
 
@@ -29,17 +24,17 @@ describe("InsightFacade", function () {
 	let failData: string;
 	let missingKey: string;
 	let emptyCourse: string;
+	let tempData: string;
 
 	before(async function () {
 		// This block runs once and loads the datasets.
 		// sections = await getContentFromArchives("pair.zip");
-
 		sections = await getContentFromArchives("pair.zip");
-		failData = await getContentFromArchives("failData.zip");
-		missingKey = await getContentFromArchives("missingKey.zip");
-		emptyCourse = await getContentFromArchives("emptyCourseData.zip");
+		// failData = await getContentFromArchives("failData.zip");
+		// missingKey = await getContentFromArchives("missingKey.zip");
+		// emptyCourse = await getContentFromArchives("emptyCourseData.zip");
+		// tempData = await getContentFromArchives("newData.zip");
 		// Just in case there is anything hanging around from a previous run of the test suite
-
 		await clearDisk();
 	});
 
@@ -166,7 +161,7 @@ describe("InsightFacade", function () {
 			}
 
 			validQueries.forEach(function (test: any) {
-				it.only(`${test.title}`, function () {
+				it(`${test.title}`, function () {
 					return facade
 						.performQuery(test.input)
 						.then((result) => {
@@ -198,14 +193,18 @@ describe("InsightFacade", function () {
 							assert.fail("Shouldn't throw anything!");
 						})
 						.catch((err: any) => {
-							// console.log(err);
-							// console.log(err);
-							// assert.fail(`performQuery threw unexpected error: ${err}`);
+							console.log(err.message.substring(0,50));
+							if (test.expected === "ResultTooLargeError") {
+								expect(err).to.be.instanceOf(ResultTooLargeError);
+							} else {
+								expect(err).to.be.instanceOf(InsightError);
+							}
 						});
 				});
 			});
 		});
 	});
+
 	describe("ListDataset", function () {
 		beforeEach(function () {
 			// This section resets the insightFacade instance

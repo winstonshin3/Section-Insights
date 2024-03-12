@@ -1,21 +1,10 @@
 {
-	"title": "ISWrongKey",
+	"title": "invalidANDMustBeArray",
 	"input": {
 		"WHERE": {
 			"OR": [
 				{
-					"AND": [
-						{
-							"GT": {
-								"sections_avg": 90
-							}
-						},
-						{
-							"IS": {
-								"sectionsdept": "adhe"
-							}
-						}
-					]
+					"AND": "null"
 				},
 				{
 					"EQ": {

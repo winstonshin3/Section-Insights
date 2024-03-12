@@ -1,192 +1,122 @@
 import {InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
-// TODO
-export function lt(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
-	if (skeys.includes(ckey)) {
-		return cvalue > (svalue[skeys.indexOf(ckey)] as number);
-	}
-	return false;
-}
-// TODO
 
-export function gt(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
-	if (skeys.includes(ckey)) {
-		return cvalue < svalue[skeys.indexOf(ckey)];
-	}
-	return false;
-}
-// TODO
-export function eq(ckey: string, cvalue: number, skeys: string[], svalue: any[]): boolean {
-	if (skeys.includes(ckey)) {
-		return cvalue === svalue[skeys.indexOf(ckey)];
-	}
-	return false;
-}
-// TODO
 
-export function is(ckey: string, cvalue: string, skeys: string[], svalue: any[]): boolean {
-	if (skeys.includes(ckey)) {
-		let string = svalue[skeys.indexOf(ckey)] as string;
-		if (string === "" || string === "*" || string === "**") {
-			return true;
-		} else if (string.startsWith("*") && string.endsWith("*")) {
-			string = string.slice(1, -1);
-			return string.includes(cvalue);
-		} else if (string.startsWith("*")) {
-			string = string.slice(1);
-			return string.startsWith(cvalue);
-		} else if (string.endsWith("*")) {
-			let asteriskIndex = string.indexOf("*");
-			string = string.slice(0, asteriskIndex);
-			return string.endsWith(cvalue);
-		} else {
-			return string === cvalue;
+export function performWhere(query: object, section: object): boolean {
+	let result: boolean = true;
+	let key: string = Object.keys(query)[0];
+	let value = Object.values(query)[0];
+	switch (key) {
+		case "AND":
+			result = true;
+			for (let item of value) {
+				result = result && performWhere(item, section);
+			}
+			return result;
+		case "OR":
+			result = false;
+			for (let item of value) {
+				result = performWhere(item, section) || result;
+			}
+			return result;
+		case "LT":
+			return result = lt(value, section);
+		case "GT":
+			return result = gt(value, section);
+		case "EQ":
+			return result = eq(value, section);
+		case "IS":
+			return result = is(value, section);
+		case "NOT":
+			return result = !(performWhere(value, section));
+		default:
+			throw new InsightError("Invalid filter key: " + key);
+	}
+}
+
+export function selectColumns(filteredResults: object[], columns: string[]) {
+	for (let result of filteredResults) {
+		for (let key of Object.keys(result)) {
+			if (!columns.includes(key)) {
+				delete result[key as keyof typeof result];
+			}
 		}
 	}
-	return true;
-}
-export function validateANDOR(value: any) {
-	if (!Array.isArray(value)) {
-		throw new InsightError("Must contain an array");
-	}
-	if (value.length === 0) {
-		throw new InsightError("Cannot be an empty array");
-	}
 }
 
-// TODO
-export function validateOption(query: object, id: string[]): void {
-	let keys = Object.keys(query);
-	if (!keys.includes("COLUMNS")) {
-		throw new InsightError("No columns!");
+export function getColumns(query: object): string[] {
+	let result = [];
+	for (const [key, value] of Object.entries(query)) {
+		if (key === "COLUMNS") {
+			result = value;
+		}
 	}
-	let columns: string[] = [];
-	let order: string = "null";
-	Object.entries(query).forEach(([key, value]) => {
-		switch (key) {
-			case "COLUMNS":
-				if (!Array.isArray(value) || value.length === 0) {
-					throw new InsightError("Column must be non-empty!");
+	return result;
+}
+
+export function lt(mKeyValuePair: object, section: object): boolean {
+	let result = true;
+	for (const [key1, value1] of Object.entries(section)) {
+		for (const [key2, value2] of Object.entries(mKeyValuePair)) {
+			if (key1 === key2) {
+				result = value2 > value1;
+			}
+		}
+	}
+	return result;
+}
+
+export function gt(mKeyValuePair: object, section: object): boolean {
+	let result = true;
+	for (const [key1, value1] of Object.entries(section)) {
+		for (const [key2, value2] of Object.entries(mKeyValuePair)) {
+			if (key1 === key2) {
+				result = value2 < value1;
+			}
+		}
+	}
+	return result;
+}
+export function eq(mKeyValuePair: object, section: object): boolean {
+	let result = true;
+	for (const [key1, value1] of Object.entries(section)) {
+		for (const [key2, value2] of Object.entries(mKeyValuePair)) {
+			if (key1 === key2) {
+				result = value2 === value1;
+			}
+		}
+	}
+	return result;
+}
+
+export function is(mKeyValuePair: object, section: object): boolean {
+	let result = true;
+	for (const [queryKey, queryValue] of Object.entries(mKeyValuePair)) {
+		for (const [sectionKey, sectionValue] of Object.entries(section)) {
+			if (queryKey === sectionKey) {
+				let string = queryValue;
+				if (string === "*" || string === "**") {
+					return true;
+				} else if (string.startsWith("*") && string.endsWith("*")) {
+					string = string.slice(1, -1);
+					return sectionValue.includes(string);
+				} else if (string.startsWith("*")) {
+					string = string.slice(1);
+					return sectionValue.endsWith(string);
+				} else if (string.endsWith("*")) {
+					let asteriskIndex = string.indexOf("*");
+					string = string.slice(0, asteriskIndex);
+					return sectionValue.startsWith(string);
+				} else {
+					return string === sectionValue;
 				}
-				columns = value;
-				break;
-			case "ORDER":
-				order = value;
-				break;
-			default:
-				throw new InsightError("Invalid Key: " + key);
-		}
-	});
-	if (!columns.includes(order)) {
-		throw new InsightError("Items in order must be in columns too!");
-	}
-	for (let item of columns) {
-		if (!item.includes(id[0]) || !order.includes(id[0])) {
-			throw new InsightError("One database at a time!");
+			}
 		}
 	}
+	return false;
 }
 
-let validSKeys = ["uuid", "id", "title", "instructor", "dept"];
-let validMKeys = ["year", "avg", "pass", "fail", "audit"];
-let validDatasetIds = ["sections", "ubc"];
-
-function validateMValue(values: any[], type: string) {
-	if (values.length !== 1) {
-		throw new InsightError("Invalid number of keys");
-	}
-	let value = values[0];
-	if (typeof value !== "number") {
-		throw new InsightError("Wrong type!");
-	}
-}
-
-function validateSValue(values: any[], type: string) {
-	if (values.length !== 1) {
-		throw new InsightError("Invalid number of keys");
-	}
-	let value = values[0];
-	if (typeof value !== "string") {
-		throw new InsightError("Wrong type!");
-	}
-	if (value === "" || value === "**" || value === "*") {
-		// return console.log("You reached the end");
-	}
-	let asteriskParts = value.split("*");
-	if (asteriskParts.length > 3) {
-		throw new InsightError("Too many asterisks");
-	} else if (asteriskParts.length === 3) {
-		if (asteriskParts[1] === "") {
-			throw new InsightError("Asterisks can only be the first or last character");
-		}
-		if (asteriskParts[0] !== "" && asteriskParts[1] !== "" && asteriskParts[2] !== "") {
-			throw new InsightError("Asterisks can only be the first or last character");
-		}
-	} else if (asteriskParts.length === 2) {
-		if (asteriskParts[0] !== "" && asteriskParts[1] !== "") {
-			throw new ResultTooLargeError("Asterisks can only be the first or last character");
-		}
-	}
-}
-
-function validateKey(keys: string[], type: string, currentDatasets: string[]): void {
-	if (keys.length !== 1) {
-		throw new InsightError("Invalid number of keys");
-	}
-	let key = keys[0];
-	if (key === "") {
-		throw new InsightError("Missing key");
-	}
-	let keyParts = key.split("_");
-	if (keyParts.length !== 2) {
-		throw new InsightError("Incorrect number of underscores in key");
-	}
-	let section = keyParts[0];
-	let smkey = keyParts[1];
-	if (!currentDatasets.includes(section)) {
-		throw new InsightError("Dataset not added yet");
-	}
-	if (type === "number" && !validMKeys.includes(smkey)) {
-		throw new InsightError("Invalid mkey");
-	}
-	if (type === "string" && !validSKeys.includes(smkey)) {
-		throw new InsightError("Invalid skey");
-	}
-}
-
-export function validComparison(query: object, id: string[], type: string, currentDatasets: string[]): boolean {
-	if (typeof query !== "object" || query === null) {
-		throw new InsightError("Query must be a valid object");
-	}
-	validateKey(Object.keys(query), type, currentDatasets);
-	if (type === "string") {
-		validateSValue(Object.values(query), type);
-	} else {
-		validateMValue(Object.values(query), type);
-	}
-	let currentID = getID(Object.keys(query)[0]);
-	assignID(currentID, id);
-	return typeof Object.values(query)[0] === type;
-}
-
-export function getID(key: string): string {
-	let parts = key.split("_");
-	if (parts.length > 2) {
-		throw new InsightError("Too many underscores in id");
-	}
-	return parts[0];
-}
-
-export function assignID(currentID: string, id: string[]) {
-	if (id[0] === "null") {
-		id[0] = currentID;
-	} else {
-		if (id[0] !== currentID) {
-			throw new InsightError("Can't have multiple sections!");
-		}
-	}
-}
 
 export function getOrderKey(query: object): string {
 	let columnsPair = Object.entries(query)[1];
@@ -250,7 +180,7 @@ export function getMap(dataPoints: any, section: string) {
 		[`${section}_title`]: data.Title as string,
 		[`${section}_instructor`]: data.Professor as string,
 		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: data.Subject === "overall" ? 1900 : Number(data.Year),
+		[`${section}_year`]: data.Section === "overall" ? 1900 : Number(data.Year),
 		[`${section}_avg`]: data.Avg as number,
 		[`${section}_pass`]: data.Pass as number,
 		[`${section}_fail`]: data.Fail as number,

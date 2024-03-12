@@ -1,14 +1,15 @@
 {
-	"title": "IsShouldBeString",
+	"title": "invalidTwoDataSetsInOption",
 	"input": {
 		"WHERE": {
-			"IS": {
-				"sections_dept": 0
+			"GT": {
+				"sections_avg": 90
 			}
 		},
 		"OPTIONS": {
 			"COLUMNS": [
-				"sections_avg"
+				"sections_dept",
+				"ubc_avg"
 			],
 			"ORDER": "sections_avg"
 		}
