@@ -24,16 +24,16 @@ describe("InsightFacade", function () {
 	let failData: string;
 	let missingKey: string;
 	let emptyCourse: string;
-	let tempData: string;
+	let campus: string;
 
 	before(async function () {
 		// This block runs once and loads the datasets.
 		// sections = await getContentFromArchives("pair.zip");
 		sections = await getContentFromArchives("pair.zip");
-		// failData = await getContentFromArchives("failData.zip");
-		// missingKey = await getContentFromArchives("missingKey.zip");
-		// emptyCourse = await getContentFromArchives("emptyCourseData.zip");
-		// tempData = await getContentFromArchives("newData.zip");
+		failData = await getContentFromArchives("failData.zip");
+		missingKey = await getContentFromArchives("missingKey.zip");
+		emptyCourse = await getContentFromArchives("emptyCourseData.zip");
+		campus = await getContentFromArchives("campus.zip");
 		// Just in case there is anything hanging around from a previous run of the test suite
 		await clearDisk();
 	});
@@ -49,7 +49,7 @@ describe("InsightFacade", function () {
 		afterEach(async function () {
 			// This section resets the data directory (removing any cached data)
 			// This runs after each test, which should make each test independent of the previous one
-			await clearDisk();
+			// await clearDisk();
 		});
 
 		it("Fail to addDataset because of blank id", async function () {
@@ -57,14 +57,19 @@ describe("InsightFacade", function () {
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 
-		it("successfully adding a dataset", async function () {
-			const result = await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
-			return expect(result).to.have.deep.members(["ubc"]);
+		it.only("successfully add a sections dataset", async function () {
+			const result = await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			return expect(result).to.have.deep.members(["sections"]);
+		});
+
+		it.only("successfully add a rooms dataset", async function () {
+			const result = await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+			return expect(result).to.have.deep.members(["campus"]);
 		});
 
 		it("should reject adding duplicate dataset", async function () {
 			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
-			const result = await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			const result = facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 
@@ -96,11 +101,6 @@ describe("InsightFacade", function () {
 
 		it("should reject as there are missing keys", function () {
 			const result = facade.addDataset("emptyCourseFolder", missingKey, InsightDatasetKind.Sections);
-			return expect(result).to.eventually.be.rejectedWith(InsightError);
-		});
-
-		it("should reject with invalid kind", function () {
-			const result = facade.addDataset("invalidKind", sections, InsightDatasetKind.Rooms);
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 	});

@@ -18,8 +18,20 @@ import {
 import {getQueryAsJson, validateQuery
 } from "./ValidateHelperFunctions";
 
-import JSZip = require("jszip");
+import {
+	parseTable,
+	getChildNodeByNodeName,
+	getContentAsBase64,
+	getCurrentDatasets,
+	validateId,
+	validateNoDuplicateId, validateSectionsFile, validateRoomsFile
+} from "./AddDatasetHelperFunctions";
+
+
+import JSZip from "jszip";
 import * as fs from "fs-extra";
+import * as parse5 from "parse5";
+
 
 /**
  * This is the main programmatic entry point for the project.
@@ -34,61 +46,58 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		let currentInsightDatasets: InsightDataset[] = await this.listDatasets();
-		let currentDatasets = currentInsightDatasets.map((value) => {
-			return value.id;
-		});
-		// console.log("Current Datasets: " + currentDatasets);
-
-		if (id === "" || id.includes("_") || id.trim() === "" || kind !== "sections") {
-			return Promise.reject(new InsightError("Invalid id"));
-		}
-		if (currentDatasets.includes(id)) {
-			return Promise.reject(new InsightError("Dataset already exists"));
-		}
-		let zip;
-
-		// let zip = await JSZip.loadAsync(content, {base64: true});
-
-		try {
-			zip = await JSZip.loadAsync(content, {base64: true});
-			// ... continue with your existing logic ...
-		} catch (e) {
-			// This catches the JSZip error and rejects with an InsightError
-			return Promise.reject(new InsightError("Invalid base64 input"));
-		}
-
-		// let folder = zip.folder(kind);
-		// console.log("Folder: " + folder);
-
-		// if (folder === null) {
-		// 	return Promise.reject(new InsightError("Folder not found in zip"));
-		// }
-		// console.log(zip.files);
-		if (!zip.files["courses/"]) {
-			return Promise.reject(new InsightError("Folder not found in zip"));
-		}
+		await validateId(id);
+		let zip = await getContentAsBase64(content);
 		let fileInFolder = zip.files;
+
 		let fileNames = Object.keys(fileInFolder);
-		let filePromises = await getFilPromises(fileNames, zip, id);
-		try {
-			let rawResults = await Promise.all(filePromises);
-			let refinedResults: object[][] = rawResults.filter(Array.isArray);
-			let array: object[] = [];
-			for (let result of refinedResults) {
-				array = array.concat(result);
-			}
-			let cacheData: object = makeInsightResult(id, kind, array);
-			await fs.ensureDir("./data");
-			await fs.writeJson(`./data/${id}`, cacheData);
-		} catch (err) {
-			return Promise.reject(err);
+
+		if (kind === "sections") {
+			validateSectionsFile(fileNames);
+		} else if (kind === "rooms") {
+			validateRoomsFile(fileNames);
 		}
-		let insightDatasets: InsightDataset[] = await this.listDatasets();
-		let addedDatasets = insightDatasets.map((value) => {
-			return value.id;
-		});
-		return Promise.resolve(addedDatasets);
+		// console.log("What is this: " + fileInFolder["courses/"].name);
+		if (kind === "sections") {
+			let file = zip.file("index.htm");
+			if (file != null) {
+				let jsonContent = await file.async("string");
+				let jsonObject = JSON.parse(jsonContent);
+			}
+			console.log(file);
+		} else if (kind === "rooms") {
+			let file = zip.file("courses/");
+			console.log(file);
+		}
+
+		// let jsonContent;
+		// let jsonObject;
+		// if (file != null) {
+		// 	jsonContent = await file.async("string");
+		// 	jsonObject = parse5.parse(jsonContent);
+		// 	// console.log(jsonObject);
+		// 	let table = getChildNodeByNodeName(jsonObject, "tbody");
+		// 	let result = parseTable(table);
+		// }
+
+		// let filePromises = await getFilPromises(fileNames, zip, id);
+		//
+		// try {
+		// 	let rawResults = await Promise.all(filePromises);
+		// 	let refinedResults: object[][] = rawResults.filter(Array.isArray);
+		// 	let array: object[] = [];
+		// 	for (let result of refinedResults) {
+		// 		array = array.concat(result);
+		// 	}
+		// 	let cacheData: object = makeInsightResult(id, kind, array);
+		// 	await fs.ensureDir("./data");
+		// 	await fs.writeJson(`./data/${id}`, cacheData);
+		// } catch (err) {
+		// 	return Promise.reject(err);
+		// }
+		// let addedDatasets = await getCurrentDatasets();
+		// return Promise.resolve(addedDatasets);
+		return Promise.resolve([]);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
