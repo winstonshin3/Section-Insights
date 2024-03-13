@@ -150,7 +150,7 @@ export function filterNodeListByNodeName(tableContents: any[], nodeName: string)
 
 export function getChildNodeByNodeName(startingNode: any, nodeName: string) {
 	let frontier: any[] = [];
-	let currentNode: Element;
+	let currentNode: any;
 	let result: any[] = [];
 	frontier.push(startingNode);
 	while(!(frontier.length === 0)) {
