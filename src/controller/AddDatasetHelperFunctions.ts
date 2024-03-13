@@ -1,12 +1,19 @@
 import * as fs from "fs-extra";
-import {InsightError} from "./IInsightFacade";
+import {InsightDatasetKind, InsightError, InsightResult} from "./IInsightFacade";
 import JSZip from "jszip";
+import http from "node:http";
 
 export interface Room {
 	fullName: string;
 	shortName: string;
 	address: string;
 	href: string;
+}
+
+export interface GeoResponse {
+	lat?: number;
+	lon?: number;
+	error?: string;
 }
 
 let validColumnNames: string[] = [
@@ -48,7 +55,8 @@ export function validateSectionsFile(fileNames: string[]) {
 }
 
 export function validateRoomsFile(fileNames: string[]) {
-	let mustHaveFiles: string[] = ["campus/", "campus/discover/", "campus/discover/buildings-and-classrooms/",];
+	let mustHaveFiles: string[] = ["campus/",
+		"campus/discover/", "campus/discover/buildings-and-classrooms/", "index.htm"];
 	for (let fileName of mustHaveFiles) {
 		if (!fileNames.includes(fileName)) {
 			throw new InsightError("Rooms is missing the folder: " + [`${fileName}`]);
@@ -84,11 +92,11 @@ export function parseRow(row: any) {
 export function assignRoomValue(room: Room, columnName: string, columnValue: string) {
 	switch (columnName) {
 		case "views-field views-field-field-building-code":
-			return room.fullName = columnValue;
-		case "views-field views-field-field-building-address":
 			return room.shortName = columnValue;
-		case "views-field views-field-title":
+		case "views-field views-field-field-building-address":
 			return room.address = columnValue;
+		case "views-field views-field-title":
+			return room.fullName = columnValue;
 		case "views-field views-field-nothing":
 			return room.href = columnValue;
 		default:
@@ -161,4 +169,85 @@ export function getChildNodeByNodeName(startingNode: any, nodeName: string) {
 	}
 	return result;
 }
+
+
+export async function getGeoLocation(result: Room[]) {
+	let jobs = [];
+	for (let res of result) {
+		jobs.push(fetchWebContent(res.address));
+	}
+	let jobResult: any[] = await Promise.all(jobs);
+	const parsedData = jobResult.map((item) => JSON.parse(item));
+	return parsedData;
+}
+
+export function mergeArrays(result: Room[], geoLocations: any[]) {
+	for (let i = 0; i < result.length; i++) {
+		result[i] = {...geoLocations[i], ...result[i]};
+	}
+}
+
+export async function getFilPromises(fileNames: string[], zip: JSZip, id: string) {
+	let filePromises = fileNames.map(async (fileName) => {
+		let file = zip.file(fileName);
+		if (file != null) {
+			try {
+				let jsonContent = await file.async("string");
+				let jsonObject = JSON.parse(jsonContent);
+				let dataPoints = jsonObject.result;
+				return getMap(dataPoints, id);
+			} catch (e) {
+				throw new InsightError("Error processing file: " + fileName);
+			}
+		}
+	});
+	return filePromises;
+}
+
+
+export function getMap(dataPoints: any, section: string) {
+	return dataPoints.map((data: any) => ({
+		[`${section}_uuid`]: data.id.toString(),
+		[`${section}_id`]: data.Course as string,
+		[`${section}_title`]: data.Title as string,
+		[`${section}_instructor`]: data.Professor as string,
+		[`${section}_dept`]: data.Subject as string,
+		[`${section}_year`]: data.Section === "overall" ? 1900 : Number(data.Year),
+		[`${section}_avg`]: data.Avg as number,
+		[`${section}_pass`]: data.Pass as number,
+		[`${section}_fail`]: data.Fail as number,
+		[`${section}_audit`]: data.Audit as number,
+	}));
+}
+
+export function makeInsightResult(id: string, kind: InsightDatasetKind, array: any[]): InsightResult {
+	let cachedData: {[key: string]: any} = {};
+	cachedData["id"] = id;
+	cachedData["kind"] = kind;
+	cachedData["numRows"] = array.length;
+	cachedData["data"] = array;
+	return cachedData;
+}
+
+
+export function fetchWebContent(address: string) {
+	let uri = encodeURIComponent(address);
+	return new Promise((resolve, reject) => {
+		http.get(`http://cs310.students.cs.ubc.ca:11316/api/v1/project_team203/${uri}`, (res) => {
+			let data = "";
+			// A chunk of data has been received
+			res.on("data", (chunk) => {
+				data += chunk;
+			});
+
+			// The whole response has been received
+			res.on("end", () => {
+				return resolve(data);
+			}).on("error", (error) => {
+				reject(error);
+			});
+		});
+	});
+}
+
 

@@ -147,43 +147,5 @@ export async function getData() {
 		throw new InsightError("Blah");
 	}
 }
-export function makeInsightResult(id: string, kind: InsightDatasetKind, array: any[]): InsightResult {
-	let cachedData: {[key: string]: any} = {};
-	cachedData["id"] = id;
-	cachedData["kind"] = kind;
-	cachedData["numRows"] = array.length;
-	cachedData["data"] = array;
-	return cachedData;
-}
 
-export async function getFilPromises(fileNames: string[], zip: JSZip, id: string) {
-	let filePromises = fileNames.map(async (fileName) => {
-		let file = zip.file(fileName);
-		if (file != null) {
-			try {
-				let jsonContent = await file.async("string");
-				let jsonObject = JSON.parse(jsonContent);
-				let dataPoints = jsonObject.result;
-				return getMap(dataPoints, id);
-			} catch (e) {
-				throw new InsightError("Error processing file: " + fileName);
-			}
-		}
-	});
-	return filePromises;
-}
 
-export function getMap(dataPoints: any, section: string) {
-	return dataPoints.map((data: any) => ({
-		[`${section}_uuid`]: data.id.toString(),
-		[`${section}_id`]: data.Course as string,
-		[`${section}_title`]: data.Title as string,
-		[`${section}_instructor`]: data.Professor as string,
-		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: data.Section === "overall" ? 1900 : Number(data.Year),
-		[`${section}_avg`]: data.Avg as number,
-		[`${section}_pass`]: data.Pass as number,
-		[`${section}_fail`]: data.Fail as number,
-		[`${section}_audit`]: data.Audit as number,
-	}));
-}

@@ -9,8 +9,6 @@ import {
 } from "./IInsightFacade";
 
 import {
-	makeInsightResult,
-	getFilPromises,
 	performWhere,
 	getData, getColumns, selectColumns,
 } from "./HelperFunctions";
@@ -24,13 +22,16 @@ import {
 	getContentAsBase64,
 	getCurrentDatasets,
 	validateId,
-	validateNoDuplicateId, validateSectionsFile, validateRoomsFile
+	validateNoDuplicateId, validateSectionsFile, validateRoomsFile,
+	makeInsightResult,
+	getFilPromises, fetchWebContent, getGeoLocation, mergeArrays,
 } from "./AddDatasetHelperFunctions";
 
 
 import JSZip from "jszip";
 import * as fs from "fs-extra";
 import * as parse5 from "parse5";
+import * as http from "node:http";
 
 
 /**
@@ -59,45 +60,31 @@ export default class InsightFacade implements IInsightFacade {
 		}
 		// console.log("What is this: " + fileInFolder["courses/"].name);
 		if (kind === "sections") {
+			let filePromises = await getFilPromises(fileNames, zip, id);
+			let rawResults = await Promise.all(filePromises);
+			let refinedResults: object[][] = rawResults.filter(Array.isArray);
+			let array: object[] = [];
+			for (let result of refinedResults) {
+				array = array.concat(result);
+			}
+			let cacheData: object = makeInsightResult(id, kind, array);
+			await fs.ensureDir("./data");
+			await fs.writeJson(`./data/${id}`, cacheData);
+		} else if (kind === "rooms") {
+			// console.log(fileNames);
 			let file = zip.file("index.htm");
+			// console.log(file);
 			if (file != null) {
 				let jsonContent = await file.async("string");
-				let jsonObject = JSON.parse(jsonContent);
+				let jsonObject = parse5.parse(jsonContent);
+				let table = getChildNodeByNodeName(jsonObject, "tbody");
+				let result = parseTable(table);
+				let geoLocations: any[] = await getGeoLocation(result);
+				mergeArrays(result, geoLocations); // TODO Result now contains everything from index!
 			}
-			console.log(file);
-		} else if (kind === "rooms") {
-			let file = zip.file("courses/");
-			console.log(file);
 		}
-
-		// let jsonContent;
-		// let jsonObject;
-		// if (file != null) {
-		// 	jsonContent = await file.async("string");
-		// 	jsonObject = parse5.parse(jsonContent);
-		// 	// console.log(jsonObject);
-		// 	let table = getChildNodeByNodeName(jsonObject, "tbody");
-		// 	let result = parseTable(table);
-		// }
-
-		// let filePromises = await getFilPromises(fileNames, zip, id);
-		//
-		// try {
-		// 	let rawResults = await Promise.all(filePromises);
-		// 	let refinedResults: object[][] = rawResults.filter(Array.isArray);
-		// 	let array: object[] = [];
-		// 	for (let result of refinedResults) {
-		// 		array = array.concat(result);
-		// 	}
-		// 	let cacheData: object = makeInsightResult(id, kind, array);
-		// 	await fs.ensureDir("./data");
-		// 	await fs.writeJson(`./data/${id}`, cacheData);
-		// } catch (err) {
-		// 	return Promise.reject(err);
-		// }
-		// let addedDatasets = await getCurrentDatasets();
-		// return Promise.resolve(addedDatasets);
-		return Promise.resolve([]);
+		let addedDatasets = await getCurrentDatasets();
+		return Promise.resolve(addedDatasets);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
