@@ -139,7 +139,10 @@ describe("InsightFacade", function () {
 			facade = new InsightFacade();
 			// Add the datasets to InsightFacade once.
 			// Will *fail* if there is a problem reading ANY dataset.
-			const loadDatasetPromises = [facade.addDataset("sections", sections, InsightDatasetKind.Sections)];
+			const loadDatasetPromises = [
+				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms)
+			];
 			try {
 				await Promise.all(loadDatasetPromises);
 			} catch (err) {
@@ -152,10 +155,10 @@ describe("InsightFacade", function () {
 			// await clearDisk();
 		});
 
-		describe("valid queries", function () {
+		describe.only("valid queries", function () {
 			let validQueries: ITestQuery[];
 			try {
-				validQueries = readFileQueries("valid");
+				validQueries = readFileQueries("validTemp");
 			} catch (e: unknown) {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
@@ -168,7 +171,7 @@ describe("InsightFacade", function () {
 							expect(result).to.have.deep.members(test.expected);
 						})
 						.catch((err: any) => {
-							console.log(err);
+							// console.log(err);
 							assert.fail("Shouldn't throw anything!");
 							// console.log(err);
 							// assert.fail(`performQuery threw unexpected error: ${err}`);

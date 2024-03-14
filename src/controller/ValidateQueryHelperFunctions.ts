@@ -2,13 +2,13 @@ import {InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError} fr
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
 
-let validSDatasets = ["uuid", "id", "title", "instructor", "dept"];
-let validMDatasets = ["year", "avg", "pass", "fail", "audit", ""];
+let validSDatasets = ["uuid", "id", "title", "instructor", "dept", "fullname",
+	"shortname", "number", "name", "address", "type", "furniture", "href"];
+let validMDatasets = ["year", "avg", "pass", "fail", "audit", "", "lat", "lon", "seats"];
 export function getQueryAsJson(query: unknown) {
-	let jsonContent;
 	let queryContent;
 	try {
-		jsonContent = JSON.stringify(query);
+		let jsonContent = JSON.stringify(query);
 		queryContent = JSON.parse(jsonContent);
 	} catch (err) {
 		throw new InsightError("Invalid query");
@@ -204,6 +204,8 @@ export function validateOptionColumns(columns: string[], currentDataBase: string
 }
 
 export function validateOptionOrder(columns: string[], order: string) {
+	console.log(columns);
+	console.log(order);
 	if (!columns.includes(order)) {
 		throw new InsightError("Items in order must be in columns too");
 	}

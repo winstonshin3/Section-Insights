@@ -9,11 +9,11 @@ import {
 
 import {
 	performWhere,
-	getData, getColumns, selectColumns,
-} from "./HelperFunctions";
+	getData, getAnyKeys, selectKeyValuesInColumn, validateResultSize, filterByAnyKeys, filterByWhere, transform,
+} from "./PerformQueryHelperFunctions";
 
 import {getQueryAsJson, validateQuery
-} from "./ValidateHelperFunctions";
+} from "./ValidateQueryHelperFunctions";
 
 import {
 	parseBuildingTable,
@@ -92,6 +92,25 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.resolve(addedDatasets);
 	}
 
+	public async performQuery(query: unknown): Promise<InsightResult[]> {
+		let parsedQuery = getQueryAsJson(query);
+		let parsedQueryKeys = Object.keys(parsedQuery);
+		// await validateQuery(query); TODO add validations T-T
+		let anyKeys: string[] = getAnyKeys(parsedQuery);
+		let allData: object[] = await getData();
+		let relevantData = filterByAnyKeys(anyKeys, allData);
+		let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
+		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
+			queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
+		}
+		// let orderKey = getOrderKey(parsedQuery.OPTIONS);
+		// queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
+		// return Promise.resolve(queryResults);
+		selectKeyValuesInColumn(queryResults, anyKeys);
+		validateResultSize(queryResults);
+		return Promise.resolve(queryResults);
+	}
+
 	public async removeDataset(id: string): Promise<string> {
 		// Check for invalid id
 		if (id === "" || id.includes("_") || id.trim() === "") {
@@ -110,28 +129,6 @@ export default class InsightFacade implements IInsightFacade {
 		} catch (err) {
 			return Promise.reject(new InsightError("Error removing dataset: " + err));
 		}
-	}
-
-	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		let queryContent = getQueryAsJson(query);
-		await validateQuery(query);
-		let persistedData: object[] = await getData();
-		let filteredResults: any[] = [];
-		for (let section of persistedData) {
-			// console.log(this.performWhere(queryContent.WHERE, section));
-			if (performWhere(queryContent.WHERE, section)) {
-				filteredResults.push(section);
-			}
-			if (filteredResults.length > 5000) {
-				throw new ResultTooLargeError("Too many results!");
-			}
-		}
-		let columns: string[] = getColumns(queryContent.OPTIONS);
-		selectColumns(filteredResults, columns);
-		// let orderKey = getOrderKey(queryContent.OPTIONS);
-		// filteredResults.sort((a, b) => a[orderKey] - b[orderKey]);
-		// return Promise.resolve(filteredResults);
-		return Promise.resolve(filteredResults);
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
