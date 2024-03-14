@@ -1,6 +1,7 @@
 import {InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError} from "./IInsightFacade";
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
+import Decimal from "decimal.js";
 
 export function filterByAnyKeys(columns: string[], persistedData: any[]) {
 	return persistedData.filter((persistedDataItem) => {
@@ -63,36 +64,85 @@ export function applyTransformation(applyObjects: any[], group: any[]) {
 	return result;
 }
 
-export function applyRule(applyToken: string, smkey: string, group: any[]) {
+export function applyRule(applyToken: string, smKey: string, group: any[]) {
 	switch(applyToken) {
 		case "SUM":
-			return applyRuleSum(smkey, group);
+			return applyRuleSum(smKey, group);
 		case "MAX":
-			return;
+			return applyRuleMax(smKey, group);
 		case "MIN":
-			return;
+			return applyRuleMin(smKey, group);
 		case "COUNT":
-			return;
+			return applyRuleCount(smKey, group);
 		case "AVG":
-			return;
+			return applyRuleAvg(smKey, group);
 		default:
 			throw new InsightError("ApplyToken is invalid");
 	}
 }
 
 export function applyRuleSum(smkey: string, group: any[]) {
-	let sum = 0;
-	group.forEach((queryResult) => {
-		sum += queryResult[smkey];
+	let sum = new Decimal(0);
+	let filteredGroup = group.filter((groupItem) => {
+		for (let key of Object.keys(groupItem)) {
+			if (key.includes("year") && groupItem[key] === 1900) {
+				return false;
+			}
+		}
+		return true;
 	});
-	return sum;
+	// console.log(filteredGroup);
+	group.forEach((queryResult) => {
+		sum = sum.add(new Decimal(queryResult[smkey]));
+	});
+	return Number(sum.toNumber().toFixed(2));
+}
+
+export function applyRuleMax(smKey: string, group: any[]) {
+	let max = group[0][smKey];
+	group.forEach((queryResult) => {
+		if (queryResult[smKey] > max) {
+			max = queryResult[smKey];
+		}
+	});
+	return max;
+}
+
+export function applyRuleMin(smKey: string, group: any[]) {
+	let min = group[0][smKey];
+	group.forEach((queryResult) => {
+		if (queryResult[smKey] < min) {
+			min = queryResult[smKey];
+		}
+	});
+	return min;
+}
+
+export function applyRuleCount(smKey: string, group: any[]) {
+	let uniqueValues = new Set(group.map((item) => {
+		return item[smKey];
+	}));
+	return uniqueValues.size;
+}
+
+export function applyRuleAvg(smKey: string, group: any[]) {
+	let sum = new Decimal(0);
+	let filteredGroup = group.filter((groupItem) => {
+		return groupItem["year"] !== 1900;
+	});
+	filteredGroup.forEach((queryResult) => {
+		sum = sum.add(new Decimal(queryResult[smKey]));
+	});
+	console.log(filteredGroup);
+	return Number((sum.toNumber() / filteredGroup.length).toFixed(2));
 }
 
 export function makeGroups(groupKeys: string[], queryResults: any[]) {
+	let queryResultsCopy = [...queryResults];
 	let filteredResults = [];
-	while(queryResults.length !== 0) {
-		let queryResult = queryResults.pop();
-		let group = queryResults.filter((qr) => {
+	while(queryResultsCopy.length !== 0) {
+		let queryResult = queryResultsCopy.pop();
+		let group = queryResultsCopy.filter((qr) => {
 			let matchesGroupValues = true;
 			for (let groupKey of groupKeys) {
 				matchesGroupValues = matchesGroupValues && (queryResult[groupKey] === qr[groupKey]);
@@ -100,7 +150,7 @@ export function makeGroups(groupKeys: string[], queryResults: any[]) {
 			return matchesGroupValues;
 		});
 		group.push(queryResult);
-		queryResults = queryResults.filter((qr) => {
+		queryResultsCopy = queryResultsCopy.filter((qr) => {
 			for (let member of group) {
 				if (deepEquals(member, qr)) {
 					return false;

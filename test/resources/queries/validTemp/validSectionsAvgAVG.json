@@ -1,0 +1,63 @@
+{
+	"title": "validSectionsAvgAVG",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 97
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"applyRule"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"applyRule": {
+						"AVG": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "cnps",
+			"applyRule": 98.04
+		},
+		{
+			"sections_dept": "crwr",
+			"applyRule": 98
+		},
+		{
+			"sections_dept": "educ",
+			"applyRule": 97.5
+		},
+		{
+			"sections_dept": "eece",
+			"applyRule": 98.75
+		},
+		{
+			"sections_dept": "epse",
+			"applyRule": 98.01
+		},
+		{
+			"sections_dept": "math",
+			"applyRule": 97.9
+		},
+		{
+			"sections_dept": "nurs",
+			"applyRule": 98.14
+		},
+		{
+			"sections_dept": "spph",
+			"applyRule": 98.98
+		}
+	]
+}

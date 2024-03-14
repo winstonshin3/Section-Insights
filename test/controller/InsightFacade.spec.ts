@@ -171,7 +171,7 @@ describe("InsightFacade", function () {
 							expect(result).to.have.deep.members(test.expected);
 						})
 						.catch((err: any) => {
-							// console.log(err);
+							console.log(err);
 							assert.fail("Shouldn't throw anything!");
 							// console.log(err);
 							// assert.fail(`performQuery threw unexpected error: ${err}`);
