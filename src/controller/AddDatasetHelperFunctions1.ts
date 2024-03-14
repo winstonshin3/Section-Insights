@@ -2,6 +2,8 @@ import * as fs from "fs-extra";
 import {InsightDatasetKind, InsightError, InsightResult} from "./IInsightFacade";
 import JSZip from "jszip";
 import http from "node:http";
+import * as parse5 from "parse5";
+import {fetchWebContent, getMap, parseBuildingRow} from "./AddDatasetHelperFunctions2";
 
 export interface Room {
 	fullName: string;
@@ -20,7 +22,12 @@ let validColumnNames: string[] = [
 	"views-field views-field-field-building-code",
 	"views-field views-field-field-building-address",
 	"views-field views-field-title",
-	"views-field views-field-nothing"];
+	"views-field views-field-nothing",
+	"views-field views-field-field-room-number",
+	"views-field views-field-field-room-capacity",
+	"views-field views-field-field-room-furniture",
+	"views-field views-field-field-room-type"
+];
 
 export async function validateId(id: string) {
 	if (id === "" || id.includes("_") || id.trim() === "") {
@@ -48,15 +55,18 @@ export async function getContentAsBase64(content: string) {
 	}
 }
 
-export function validateSectionsFile(fileNames: string[]) {
+export function validateSectionsFiles(fileNames: string[]) {
 	if (!fileNames.includes("courses/")) {
 		throw new InsightError("No courses folder");
 	}
 }
 
-export function validateRoomsFile(fileNames: string[]) {
-	let mustHaveFiles: string[] = ["campus/",
-		"campus/discover/", "campus/discover/buildings-and-classrooms/", "index.htm"];
+export function validateRoomsFiles(fileNames: string[]) {
+	let mustHaveFiles: string[] = [
+		"campus/",
+		"campus/discover/",
+		"campus/discover/buildings-and-classrooms/",
+		"index.htm"];
 	for (let fileName of mustHaveFiles) {
 		if (!fileNames.includes(fileName)) {
 			throw new InsightError("Rooms is missing the folder: " + [`${fileName}`]);
@@ -64,32 +74,18 @@ export function validateRoomsFile(fileNames: string[]) {
 	}
 }
 
-
-export function parseTable(tableRows: any) {
+// TODO there is redundancy here with getTableColumn and parseRow.
+export function parseBuildingTable(tableRows: any) {
 	let rows = filterNodeListByNodeName(tableRows, "tr");
 	let result = [];
 	for (let row of rows) {
-		result.push(parseRow(row));
+		result.push(parseBuildingRow(row));
 	}
 	return result;
 }
 
 
-export function parseRow(row: any) {
-	let rowContents = row.childNodes;
-	let room: Room = {fullName: "null", shortName: "null", address: "null", href: "null"};
-	rowContents = filterNodeListByNodeName(rowContents, "td");
-	for (let column of rowContents) {
-		let columnName = column.attrs[0]["value"];
-		let columnValue = getColumnValue(column, columnName);
-		if (columnValue !== undefined) {
-			assignRoomValue(room, columnName, columnValue);
-		} // TODO Could use an else statement here to handle invalid (incomplete) rooms.
-	}
-	return room;
-}
-
-export function assignRoomValue(room: Room, columnName: string, columnValue: string) {
+export function assignRoomValue(room: any, columnName: string, columnValue: string) {
 	switch (columnName) {
 		case "views-field views-field-field-building-code":
 			return room.shortName = columnValue;
@@ -97,28 +93,58 @@ export function assignRoomValue(room: Room, columnName: string, columnValue: str
 			return room.address = columnValue;
 		case "views-field views-field-title":
 			return room.fullName = columnValue;
+		case "views-field views-field-field-room-number":
+			return room.number = columnValue;
+		case "views-field views-field-field-room-capacity":
+			return room.seats = columnValue;
+		case "views-field views-field-field-room-furniture":
+			return room.furniture = columnValue;
+		case "views-field views-field-field-room-type":
+			return room.type = columnValue;
 		case "views-field views-field-nothing":
 			return room.href = columnValue;
 		default:
-			break;
+			return "null";
 	}
 }
 
 export function getColumnValue(column: any, columnName: string) {
-	if (validColumnNames.includes(columnName)) {
-		switch (columnName) {
-			case "views-field views-field-field-building-code":
-				return getBuildingCode(column).trim();
-			case "views-field views-field-field-building-address":
-				return getBuildingAddress(column).trim();
-			case "views-field views-field-title":
-				return getFullName(column).trim();
-			case "views-field views-field-nothing":
-				return getHref(column).trim();
-			default:
-				break;
-		}
+	switch (columnName) {
+		case "views-field views-field-field-building-code":
+			return getBuildingCode(column).trim();
+		case "views-field views-field-field-building-address":
+			return getBuildingAddress(column).trim();
+		case "views-field views-field-title":
+			return getFullName(column).trim();
+		case "views-field views-field-nothing":
+			return getHref(column).trim();
+		case "views-field views-field-field-room-number":
+			return getRoomNumber(column).trim();
+		case "views-field views-field-field-room-capacity":
+			return getRoomCapacity(column).trim();
+		case "views-field views-field-field-room-furniture":
+			return getFurnitureType(column).trim();
+		case "views-field views-field-field-room-type":
+			return getRoomType(column).trim();
+		default:
+			return "null";
 	}
+}
+
+export function getRoomNumber(column: any) {
+	return column.childNodes[1].childNodes[0]["value"];
+}
+
+export function getRoomCapacity(column: any) {
+	return column.childNodes[0]["value"];
+}
+
+export function getFurnitureType(column: any) {
+	return column.childNodes[0]["value"];
+}
+
+export function getRoomType(column: any) {
+	return column.childNodes[0]["value"];
 }
 
 export function getBuildingCode(column: any) {
@@ -181,13 +207,19 @@ export async function getGeoLocation(result: Room[]) {
 	return parsedData;
 }
 
-export function mergeArrays(result: Room[], geoLocations: any[]) {
-	for (let i = 0; i < result.length; i++) {
-		result[i] = {...geoLocations[i], ...result[i]};
+export function mergeArrays(array1: any[], array2: any[]) {
+	for (let i = 0; i < array1.length; i++) {
+		array1[i] = {...array1[i], ...array2[i]};
 	}
 }
 
-export async function getFilPromises(fileNames: string[], zip: JSZip, id: string) {
+export function filterSectionFileNames(fileNames: string[]) {
+	return fileNames.filter((fileName) => {
+		return !fileName.endsWith("/");
+	});
+}
+
+export async function getContentsOfFiles(fileNames: string[], zip: JSZip, id: string) {
 	let filePromises = fileNames.map(async (fileName) => {
 		let file = zip.file(fileName);
 		if (file != null) {
@@ -199,55 +231,17 @@ export async function getFilPromises(fileNames: string[], zip: JSZip, id: string
 			} catch (e) {
 				throw new InsightError("Error processing file: " + fileName);
 			}
+		} else {
+			return [];
 		}
 	});
-	return filePromises;
+	let contentsInDifferentFiles = await Promise.all(filePromises);
+	return [].concat(...contentsInDifferentFiles);
 }
 
-
-export function getMap(dataPoints: any, section: string) {
-	return dataPoints.map((data: any) => ({
-		[`${section}_uuid`]: data.id.toString(),
-		[`${section}_id`]: data.Course as string,
-		[`${section}_title`]: data.Title as string,
-		[`${section}_instructor`]: data.Professor as string,
-		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: data.Section === "overall" ? 1900 : Number(data.Year),
-		[`${section}_avg`]: data.Avg as number,
-		[`${section}_pass`]: data.Pass as number,
-		[`${section}_fail`]: data.Fail as number,
-		[`${section}_audit`]: data.Audit as number,
-	}));
-}
-
-export function makeInsightResult(id: string, kind: InsightDatasetKind, array: any[]): InsightResult {
-	let cachedData: {[key: string]: any} = {};
-	cachedData["id"] = id;
-	cachedData["kind"] = kind;
-	cachedData["numRows"] = array.length;
-	cachedData["data"] = array;
-	return cachedData;
-}
-
-
-export function fetchWebContent(address: string) {
-	let uri = encodeURIComponent(address);
-	return new Promise((resolve, reject) => {
-		http.get(`http://cs310.students.cs.ubc.ca:11316/api/v1/project_team203/${uri}`, (res) => {
-			let data = "";
-			// A chunk of data has been received
-			res.on("data", (chunk) => {
-				data += chunk;
-			});
-
-			// The whole response has been received
-			res.on("end", () => {
-				return resolve(data);
-			}).on("error", (error) => {
-				reject(error);
-			});
-		});
+export function filterRoomsFileNames(fileNames: string[]) {
+	return fileNames.filter((fileName) => {
+		return fileName.startsWith("campus/discover/buildings-and-classrooms/") && !fileName.endsWith("/");
 	});
 }
-
 

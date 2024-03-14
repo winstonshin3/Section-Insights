@@ -5,7 +5,6 @@ import {
 	InsightResult,
 	InsightError,
 	ResultTooLargeError,
-	NotFoundError,
 } from "./IInsightFacade";
 
 import {
@@ -17,21 +16,29 @@ import {getQueryAsJson, validateQuery
 } from "./ValidateHelperFunctions";
 
 import {
-	parseTable,
+	parseBuildingTable,
 	getChildNodeByNodeName,
 	getContentAsBase64,
 	getCurrentDatasets,
 	validateId,
-	validateNoDuplicateId, validateSectionsFile, validateRoomsFile,
-	makeInsightResult,
-	getFilPromises, fetchWebContent, getGeoLocation, mergeArrays,
-} from "./AddDatasetHelperFunctions";
+	validateSectionsFiles,
+	validateRoomsFiles,
+	getContentsOfFiles,
+	getGeoLocation,
+	mergeArrays,
+	filterSectionFileNames,
+	filterRoomsFileNames,
+} from "./AddDatasetHelperFunctions1";
 
-
-import JSZip from "jszip";
 import * as fs from "fs-extra";
 import * as parse5 from "parse5";
-import * as http from "node:http";
+import {
+	addRoomId,
+	filterCacheData,
+	getContentsRoomFiles,
+	makeInsightResult,
+	matchByMarker
+} from "./AddDatasetHelperFunctions2";
 
 
 /**
@@ -50,37 +57,35 @@ export default class InsightFacade implements IInsightFacade {
 		await validateId(id);
 		let zip = await getContentAsBase64(content);
 		let fileInFolder = zip.files;
-
 		let fileNames = Object.keys(fileInFolder);
-
-		if (kind === "sections") {
-			validateSectionsFile(fileNames);
-		} else if (kind === "rooms") {
-			validateRoomsFile(fileNames);
-		}
+		// TODO didn't validate folder before
 		// console.log("What is this: " + fileInFolder["courses/"].name);
 		if (kind === "sections") {
-			let filePromises = await getFilPromises(fileNames, zip, id);
-			let rawResults = await Promise.all(filePromises);
-			let refinedResults: object[][] = rawResults.filter(Array.isArray);
-			let array: object[] = [];
-			for (let result of refinedResults) {
-				array = array.concat(result);
-			}
-			let cacheData: object = makeInsightResult(id, kind, array);
+			validateSectionsFiles(fileNames);
+			let filteredFileNames = filterSectionFileNames(fileNames);
+			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
+			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
 			await fs.ensureDir("./data");
 			await fs.writeJson(`./data/${id}`, cacheData);
-		} else if (kind === "rooms") {
-			// console.log(fileNames);
+		}
+		if (kind === "rooms") {
+			validateRoomsFiles(fileNames);
 			let file = zip.file("index.htm");
-			// console.log(file);
 			if (file != null) {
 				let jsonContent = await file.async("string");
-				let jsonObject = parse5.parse(jsonContent);
-				let table = getChildNodeByNodeName(jsonObject, "tbody");
-				let result = parseTable(table);
+				let jsonObject = parse5.parse(jsonContent); // TODO parse can throw error?
+				let table = getChildNodeByNodeName(jsonObject, "tbody"); // TODO MAKE FETCH TABLES
+				let result = parseBuildingTable(table);
 				let geoLocations: any[] = await getGeoLocation(result);
 				mergeArrays(result, geoLocations); // TODO Result now contains everything from index!
+				let filteredFileNames = filterRoomsFileNames(fileNames);
+				let contentsInZip = await getContentsRoomFiles(filteredFileNames, zip, id);
+				let unfilteredCacheData = matchByMarker(contentsInZip, result);
+				let unLabeledCacheData = filterCacheData(unfilteredCacheData);
+				let labeledCacheData = addRoomId(unLabeledCacheData, id);
+				let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
+				await fs.ensureDir("./data");
+				await fs.writeJson(`./data/${id}`, cacheData);
 			}
 		}
 		let addedDatasets = await getCurrentDatasets();
