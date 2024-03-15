@@ -44,9 +44,11 @@ export async function validateQuery(query: any) {
 	if (queryKeys.includes("TRANSFORMATIONS")) {
 		validateAsObject("TRANSFORMATIONS", query.TRANSFORMATIONS);
 		validateTranformation(query.TRANSFORMATIONS, columnKeys);
+
 		let groupKeys = query.TRANSFORMATIONS["GROUP"];
 		let applyKeys = getApplyKeys(query.TRANSFORMATIONS["APPLY"]);
 		validateColumnsMustBeInGroupOrApply(columnKeys, groupKeys, applyKeys);
+
 		totalKeys = totalKeys.concat(groupKeys);
 	}
 	validateAccessingOneDatasetOnly(totalKeys);
@@ -99,9 +101,9 @@ export function validateGroup(groupKeys: any, columns: any[]) {
 		if (!validSKeys.includes(smKey) && !validMKeys.includes(smKey)) {
 			throw new InsightError("GROUP key must be an smKey");
 		}
-		if (!columns.includes(groupKey)) {
-			throw new InsightError("GROUP key must be in COLUMNS");
-		}
+		// if (!columns.includes(groupKey)) {
+		// 	throw new InsightError("GROUP key must be in COLUMNS");
+		// }
 	}
 }
 

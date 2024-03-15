@@ -26,9 +26,12 @@ export function filterByWhere(query: any, relevantData: any[]) {
 
 export function transform(query: any, data: any[]) {
 	let groupKeys: string[] = query.GROUP; // Cohesion-coupling??
+	// console.log(groupKeys);
+	// console.log(data.length);
 	let groups = makeGroups(groupKeys, data);
 	let applyObjects: any[] = query.APPLY;
 	let newQueryResults = [];
+	// console.log(groups.length);
 	for (let group of groups) {
 		let queryResult = trimByKeys(groupKeys, group[0]);
 		// console.log(queryResult);
@@ -38,6 +41,7 @@ export function transform(query: any, data: any[]) {
 		}
 		newQueryResults.push(queryResult);
 	}
+	// console.log("query results", newQueryResults)
 	return newQueryResults;
 }
 
