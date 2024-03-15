@@ -29,13 +29,17 @@ describe("InsightFacade", function () {
 	before(async function () {
 		// This block runs once and loads the datasets.
 		// sections = await getContentFromArchives("pair.zip");
-		sections = await getContentFromArchives("pair.zip");
-		failData = await getContentFromArchives("failData.zip");
-		missingKey = await getContentFromArchives("missingKey.zip");
-		emptyCourse = await getContentFromArchives("emptyCourseData.zip");
-		rooms = await getContentFromArchives("campus.zip");
+		try {
+			sections = await getContentFromArchives("pair.zip");
+			failData = await getContentFromArchives("failData.zip");
+			missingKey = await getContentFromArchives("missingKey.zip");
+			emptyCourse = await getContentFromArchives("emptyCourseData.zip");
+			rooms = await getContentFromArchives("campus.zip");
+			await clearDisk();
+		} catch (err) {
+			console.log(err);
+		}
 		// Just in case there is anything hanging around from a previous run of the test suite
-		await clearDisk();
 	});
 
 	describe("RemoveDataset", function () {
@@ -95,7 +99,7 @@ describe("InsightFacade", function () {
 		afterEach(async function () {
 			// This section resets the data directory (removing any cached data)
 			// This runs after each test, which should make each test independent of the previous one
-			// await clearDisk();
+			await clearDisk();
 		});
 
 		it("Fail to addDataset because of blank id", async function () {
@@ -114,8 +118,8 @@ describe("InsightFacade", function () {
 		});
 
 		it("should reject adding duplicate dataset", async function () {
-			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
-			const result = facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			await facade.addDataset("ubc", rooms, InsightDatasetKind.Rooms);
+			const result = facade.addDataset("ubc", rooms, InsightDatasetKind.Rooms);
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 
@@ -172,7 +176,7 @@ describe("InsightFacade", function () {
 		});
 
 		after(async function () {
-			// await clearDisk();
+			await clearDisk();
 		});
 
 		describe("valid queries", function () {
