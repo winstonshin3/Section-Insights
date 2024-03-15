@@ -60,9 +60,9 @@ export default class InsightFacade implements IInsightFacade {
 			validateSectionsFiles(fileNames);
 			let filteredFileNames = filterSectionFileNames(fileNames);
 			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-			// let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
 			// await fs.ensureDir("./data");
-			// await fs.writeJson(`./data/${id}`, cacheData);
+			await fs.writeJson(`./data/${id}`, cacheData);
 		}
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
