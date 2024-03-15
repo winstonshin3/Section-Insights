@@ -49,98 +49,48 @@ export default class InsightFacade implements IInsightFacade {
 		console.log("InsightFacadeImpl::init()");
 	}
 
-	// public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-	// 	await validateId(id);
-	// 	let zip = await getContentAsBase64(content);
-	// 	let fileInFolder = zip.files;
-	// 	let fileNames = Object.keys(fileInFolder);
-	// 	// TODO didn't validate folder before
-	// 	// console.log("What is this: " + fileInFolder["courses/"].name);
-	// 	if (kind === "sections") {
-	// 		validateSectionsFiles(fileNames);
-	// 		let filteredFileNames = filterSectionFileNames(fileNames);
-	// 		let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-	// 		let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-	// 		await fs.ensureDir("./data");
-	// 		await fs.writeJson(`./data/${id}`, cacheData);
-	// 	}
-	// 	if (kind === "rooms") {
-	// 		validateRoomsFiles(fileNames);
-	// 		let file = zip.file("index.htm");
-	// 		if (file != null) {
-	// 			let jsonContent = await file.async("string");
-	// 			let jsonObject = parse5.parse(jsonContent); // TODO parse can throw error?
-	// 			let table = getChildNodeByNodeName(jsonObject, "tbody"); // TODO MAKE FETCH TABLES
-	// 			if (table.length === 0) {
-	// 				throw new InsightError("No matching table.");
-	// 			}
-	// 			let result = parseBuildingTable(table);
-	// 			let geoLocations: any[] = await getGeoLocation(result);
-	// 			mergeArrays(result, geoLocations); // TODO Result now contains everything from index!
-	// 			let filteredFileNames = filterRoomsFileNames(fileNames);
-	// 			let contentsInZip = await getContentsRoomFiles(filteredFileNames, zip, id);
-	// 			let unfilteredCacheData = matchByMarker(contentsInZip, result);
-	// 			let unLabeledCacheData = filterCacheData(unfilteredCacheData);
-	// 			let labeledCacheData = addRoomId(unLabeledCacheData, id);
-	// 			let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
-	// 			await fs.ensureDir("./data");
-	// 			await fs.writeJson(`./data/${id}`, cacheData);
-	// 		}
-	// 	}
-	// 	let addedDatasets = await getCurrentDatasets();
-	// 	return Promise.resolve(addedDatasets);
-	// }
-
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		return validateId(id)
-			.then(() => getContentAsBase64(content))
-			.then((zip) => {
-				let fileInFolder = zip.files;
-				let fileNames = Object.keys(fileInFolder);
-				return fs.ensureDir("./data").then(() => ({zip, fileNames}));
-			})
-			.then(({zip, fileNames}) => {
-				if (kind === "sections") {
-					validateSectionsFiles(fileNames);
-					let filteredFileNames = filterSectionFileNames(fileNames);
-					let contentsInZipPromises = filteredFileNames.map((fileName) => {
-						return getContentsOfFiles([fileName],zip,id);
-					});
-					return Promise.all(contentsInZipPromises)
-						.then((contentsInZip) => {
-							let cacheData = makeInsightResult(id, kind, contentsInZip.flat());
-							return fs.writeJson(`./data/${id}`, cacheData);
-						});
-				} else if (kind === "rooms") {
-					validateRoomsFiles(fileNames);
-					let file = zip.file("index.htm");
-					if (file != null) {
-						return file.async("string")
-							.then(async (jsonContent) => {
-								let jsonObject = parse5.parse(jsonContent);
-								let table = getChildNodeByNodeName(jsonObject, "tbody");
-								if (table.length === 0) {
-									throw new InsightError("No matching table.");
-								}
-								let result = parseBuildingTable(table);
-								const geoLocations = await getGeoLocation(result);
-								mergeArrays(result, geoLocations);
-								let filteredFileNames = filterRoomsFileNames(fileNames);
-								const contentsInZip = await getContentsRoomFiles(filteredFileNames, zip, id);
-								let unfilteredCacheData = matchByMarker(contentsInZip, result);
-								let unLabeledCacheData = filterCacheData(unfilteredCacheData);
-								let labeledCacheData = addRoomId(unLabeledCacheData, id);
-								let cacheData = makeInsightResult(id, kind, labeledCacheData);
-								return await fs.writeJson(`./data/${id}`, cacheData);
-							});
-					}
+		await validateId(id);
+		let zip = await getContentAsBase64(content);
+		let fileInFolder = zip.files;
+		let fileNames = Object.keys(fileInFolder);
+		// TODO didn't validate folder before
+		// console.log("What is this: " + fileInFolder["courses/"].name);
+		// if (kind === "sections") {
+		// 	validateSectionsFiles(fileNames);
+		// 	let filteredFileNames = filterSectionFileNames(fileNames);
+		// 	let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
+		// 	let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+		// 	await fs.ensureDir("./data");
+		// 	await fs.writeJson(`./data/${id}`, cacheData);
+		// }
+		if (kind === "rooms") {
+			validateRoomsFiles(fileNames);
+			let file = zip.file("index.htm");
+			if (file != null) {
+				let jsonContent = await file.async("string");
+				let jsonObject = parse5.parse(jsonContent); // TODO parse can throw error?
+				let table = getChildNodeByNodeName(jsonObject, "tbody"); // TODO MAKE FETCH TABLES
+				if (table.length === 0) {
+					throw new InsightError("No matching table.");
 				}
-			})
-			.then(() => getCurrentDatasets())
-			.catch((error) => {
-				throw error;
-			});
+				let result = parseBuildingTable(table);
+				let geoLocations: any[] = await getGeoLocation(result);
+				mergeArrays(result, geoLocations); // TODO Result now contains everything from index!
+				let filteredFileNames = filterRoomsFileNames(fileNames);
+				let contentsInZip = await getContentsRoomFiles(filteredFileNames, zip, id);
+				let unfilteredCacheData = matchByMarker(contentsInZip, result);
+				let unLabeledCacheData = filterCacheData(unfilteredCacheData);
+				let labeledCacheData = addRoomId(unLabeledCacheData, id);
+				let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
+				await fs.ensureDir("./data");
+				await fs.writeJson(`./data/${id}`, cacheData);
+			}
+		}
+		let addedDatasets = await getCurrentDatasets();
+		return Promise.resolve(addedDatasets);
 	}
+
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
