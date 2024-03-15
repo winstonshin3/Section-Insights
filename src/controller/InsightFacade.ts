@@ -68,13 +68,11 @@ export default class InsightFacade implements IInsightFacade {
 			let filteredFileNames = filterSectionFileNames(fileNames);
 			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
 			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-			calculateDataSize(cacheData);
-			const writeStream = fs.createWriteStream(`./data/${id}`,cacheData);
-			const pipeline = promisify(stream.pipeline);
-			await pipeline(
-				stream.Readable.from(JSON.stringify(cacheData)),
-				writeStream
-			);
+			try {
+				await fs.writeJson(`./data/${id}`, cacheData);
+			} catch (err) {
+				throw new InsightError("Error in writing sections file");
+			}
 		}
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
@@ -95,8 +93,11 @@ export default class InsightFacade implements IInsightFacade {
 				let unLabeledCacheData = filterCacheData(unfilteredCacheData);
 				let labeledCacheData = addRoomId(unLabeledCacheData, id);
 				let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
-				await fs.ensureDir("./data");
-				await fs.writeJson(`./data/${id}`, cacheData);
+				try {
+					await fs.writeJson(`./data/${id}`, cacheData);
+				} catch (err) {
+					throw new InsightError("Error in writing sections file");
+				}
 			}
 		}
 		let addedDatasets = await getCurrentDatasets();
