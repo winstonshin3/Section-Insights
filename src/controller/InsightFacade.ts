@@ -120,12 +120,17 @@ export default class InsightFacade implements IInsightFacade {
 					return b[order] - a[order];
 				}
 			});
-		} else if (Array.isArray(order)) {
+		}
+		if (typeof order === "object") {
+			order = order["keys"];
 			queryResults.sort((a, b) => {
 				let diff = 0;
 				for (let o of order) {
-					diff = a[o] - b[o];
-					if (diff !== 0) {
+					if (a[o] > b[o]) {
+						diff = 1;
+						break;
+					} else if (a[o] < b[o]) {
+						diff = -1;
 						break;
 					}
 				}
