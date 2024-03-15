@@ -1,14 +1,10 @@
 import {InsightDatasetKind, InsightError, ResultTooLargeError,} from "../../src/controller/IInsightFacade";
-
 import InsightFacade from "../../src/controller/InsightFacade";
 import {assert, expect} from "chai";
 import * as fs from "fs-extra";
-// import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives, readFileQueries} from "../TestUtil";
 import chai = require("chai");
-
 chai.use(require("chai-as-promised"));
-// use(chaiAsPromised);
 
 export interface ITestQuery {
 	title: string;

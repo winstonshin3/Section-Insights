@@ -35,7 +35,7 @@ import {
 	filterCacheData,
 	getContentsRoomFiles,
 	makeInsightResult,
-	matchByMarker, writeByChunks
+	matchByMarker, validateZipContents
 } from "./AddDatasetHelperFunctions2";
 
 
@@ -61,9 +61,9 @@ export default class InsightFacade implements IInsightFacade {
 			validateSectionsFiles(fileNames);
 			let filteredFileNames = filterSectionFileNames(fileNames);
 			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-			await writeByChunks(contentsInZip, id, kind);
-			// let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-			// await fs.writeJson(`./data/${id}`, cacheData);
+			validateZipContents(contentsInZip);
+			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+			await fs.writeJson(`./data/${id}`, cacheData);
 		}
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
@@ -83,7 +83,7 @@ export default class InsightFacade implements IInsightFacade {
 				let unfilteredCacheData = matchByMarker(contentsInZip, result);
 				let unLabeledCacheData = filterCacheData(unfilteredCacheData);
 				let labeledCacheData = addRoomId(unLabeledCacheData, id);
-				let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
+				let cacheData = makeInsightResult(id, kind, labeledCacheData);
 				try {
 					await fs.writeJson(`./data/${id}`, cacheData);
 				} catch (err) {

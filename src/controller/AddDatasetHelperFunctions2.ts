@@ -149,28 +149,14 @@ export function getNodesByNodeName(startingNode: any, nodeName: string) {
 // 	return result;
 // }
 
-export function getMap(dataPoints: any, section: string) {
-	return dataPoints.map((data: any) => ({
-		[`${section}_uuid`]: data.id.toString(),
-		[`${section}_id`]: data.Course as string,
-		[`${section}_title`]: data.Title as string,
-		[`${section}_instructor`]: data.Professor as string,
-		[`${section}_dept`]: data.Subject as string,
-		[`${section}_year`]: data.Section === "overall" ? 1900 : Number(data.Year),
-		[`${section}_avg`]: data.Avg as number,
-		[`${section}_pass`]: data.Pass as number,
-		[`${section}_fail`]: data.Fail as number,
-		[`${section}_audit`]: data.Audit as number,
-	}));
-}
 
-export function makeInsightResult(id: string, kind: InsightDatasetKind, array: any[]): InsightResult {
-	let cachedData: {[key: string]: any} = {};
-	cachedData["id"] = id;
-	cachedData["kind"] = kind;
-	cachedData["numRows"] = array.length;
-	cachedData["data"] = array;
-	return cachedData;
+export function makeInsightResult(id: string, kind: InsightDatasetKind, array: any[]) {
+	return {
+		id: id,
+		kind: kind,
+		numRows: array.length,
+		data: array
+	};
 }
 
 export function fetchWebContent(address: string) {
@@ -210,25 +196,57 @@ export function matchByMarker(roomTables: any[], buildingTable: any[]){
 	return result;
 }
 
-export async function writeByChunks(contentsInZip: any[], id: string, kind: InsightDatasetKind) {
-	let chunks: any[] = [];
-	let temp = {...contentsInZip};
-	let chunkSize = 15000;
-	for (let i = 0; i < contentsInZip.length; i += chunkSize) {
-		chunks.push(contentsInZip.slice(i, i + chunkSize));
-	}
-	chunks = chunks.map((chunk) => {
-		return makeInsightResult(id, kind, chunk);
-	});
-	try {
-		let jobs = [];
-		let count = 0;
-		for (let chunk of chunks) {
-			count++;
-			jobs.push(fs.writeJson(`./data/${id}${count}`, chunk));
+export function getMap(dataPoints: any, section: string) {
+	return dataPoints.map((data: any) => ({
+		[`${section}_uuid`]: data.id.toString(),
+		[`${section}_id`]: data.Course as string,
+		[`${section}_title`]: data.Title as string,
+		[`${section}_instructor`]: data.Professor as string,
+		[`${section}_dept`]: data.Subject as string,
+		[`${section}_year`]: data.Section === "overall" ? 1900 : Number(data.Year),
+		[`${section}_avg`]: data.Avg as number,
+		[`${section}_pass`]: data.Pass as number,
+		[`${section}_fail`]: data.Fail as number,
+		[`${section}_audit`]: data.Audit as number,
+	}));
+}
+
+
+export function validateZipContents(contentsInZip: any[]) {
+	contentsInZip = contentsInZip.filter((content) => {
+		let keys = Object.keys(content);
+		for (let key of keys) {
+			if ((typeof content[key]) !== "string" || (typeof content[key]) !== "number") {
+				return false;
+			}
 		}
-		await Promise.all(jobs);
-	} catch {
-		throw new InsightError();
+		return true;
+	});
+	if (contentsInZip.length !== 0) {
+		throw new InsightError("Must contain at least one valid section");
 	}
 }
+
+
+// export async function writeByChunks(contentsInZip: any[], id: string, kind: InsightDatasetKind) {
+// 	let chunks: any[] = [];
+// 	let temp = {...contentsInZip};
+// 	let chunkSize = 15000;
+// 	for (let i = 0; i < contentsInZip.length; i += chunkSize) {
+// 		chunks.push(contentsInZip.slice(i, i + chunkSize));
+// 	}
+// 	chunks = chunks.map((chunk) => {
+// 		return makeInsightResult(id, kind, chunk);
+// 	});
+// 	try {
+// 		let jobs = [];
+// 		let count = 0;
+// 		for (let chunk of chunks) {
+// 			count++;
+// 			jobs.push(fs.writeJson(`./data/${id}${count}`, chunk));
+// 		}
+// 		await Promise.all(jobs);
+// 	} catch {
+// 		throw new InsightError();
+// 	}
+// }
