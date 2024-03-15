@@ -56,37 +56,37 @@ export default class InsightFacade implements IInsightFacade {
 		let fileNames = Object.keys(fileInFolder);
 		// TODO didn't validate folder before
 		// console.log("What is this: " + fileInFolder["courses/"].name);
-		// if (kind === "sections") {
-		// 	validateSectionsFiles(fileNames);
-		// 	let filteredFileNames = filterSectionFileNames(fileNames);
-		// 	let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-		// 	let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-		// 	await fs.ensureDir("./data");
-		// 	await fs.writeJson(`./data/${id}`, cacheData);
-		// }
-		if (kind === "rooms") {
-			validateRoomsFiles(fileNames);
-			let file = zip.file("index.htm");
-			if (file != null) {
-				let jsonContent = await file.async("string");
-				let jsonObject = parse5.parse(jsonContent); // TODO parse can throw error?
-				let table = getChildNodeByNodeName(jsonObject, "tbody"); // TODO MAKE FETCH TABLES
-				if (table.length === 0) {
-					throw new InsightError("No matching table.");
-				}
-				let result = parseBuildingTable(table);
-				let geoLocations: any[] = await getGeoLocation(result);
-				mergeArrays(result, geoLocations); // TODO Result now contains everything from index!
-				let filteredFileNames = filterRoomsFileNames(fileNames);
-				let contentsInZip = await getContentsRoomFiles(filteredFileNames, zip, id);
-				let unfilteredCacheData = matchByMarker(contentsInZip, result);
-				let unLabeledCacheData = filterCacheData(unfilteredCacheData);
-				let labeledCacheData = addRoomId(unLabeledCacheData, id);
-				let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
-				await fs.ensureDir("./data");
-				await fs.writeJson(`./data/${id}`, cacheData);
-			}
+		if (kind === "sections") {
+			validateSectionsFiles(fileNames);
+			let filteredFileNames = filterSectionFileNames(fileNames);
+			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
+			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+			await fs.ensureDir("./data");
+			await fs.writeJson(`./data/${id}`, cacheData);
 		}
+		// if (kind === "rooms") {
+		// 	validateRoomsFiles(fileNames);
+		// 	let file = zip.file("index.htm");
+		// 	if (file != null) {
+		// 		let jsonContent = await file.async("string");
+		// 		let jsonObject = parse5.parse(jsonContent); // TODO parse can throw error?
+		// 		let table = getChildNodeByNodeName(jsonObject, "tbody"); // TODO MAKE FETCH TABLES
+		// 		if (table.length === 0) {
+		// 			throw new InsightError("No matching table.");
+		// 		}
+		// 		let result = parseBuildingTable(table);
+		// 		let geoLocations: any[] = await getGeoLocation(result);
+		// 		mergeArrays(result, geoLocations); // TODO Result now contains everything from index!
+		// 		let filteredFileNames = filterRoomsFileNames(fileNames);
+		// 		let contentsInZip = await getContentsRoomFiles(filteredFileNames, zip, id);
+		// 		let unfilteredCacheData = matchByMarker(contentsInZip, result);
+		// 		let unLabeledCacheData = filterCacheData(unfilteredCacheData);
+		// 		let labeledCacheData = addRoomId(unLabeledCacheData, id);
+		// 		let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
+		// 		await fs.ensureDir("./data");
+		// 		await fs.writeJson(`./data/${id}`, cacheData);
+		// 	}
+		// }
 		let addedDatasets = await getCurrentDatasets();
 		return Promise.resolve(addedDatasets);
 	}
