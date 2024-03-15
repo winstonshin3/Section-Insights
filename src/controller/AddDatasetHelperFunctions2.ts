@@ -216,13 +216,13 @@ export function validateZipContents(contentsInZip: any[]) {
 	contentsInZip = contentsInZip.filter((content) => {
 		let keys = Object.keys(content);
 		for (let key of keys) {
-			if ((typeof content[key]) !== "string" || (typeof content[key]) !== "number") {
+			if ((typeof content[key]) !== "string" && (typeof content[key]) !== "number") {
 				return false;
 			}
 		}
 		return true;
 	});
-	if (contentsInZip.length !== 0) {
+	if (contentsInZip.length === 0) {
 		throw new InsightError("Must contain at least one valid section");
 	}
 }
