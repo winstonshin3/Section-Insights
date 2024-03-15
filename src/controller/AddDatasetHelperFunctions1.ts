@@ -228,6 +228,9 @@ export async function getContentsOfFiles(fileNames: string[], zip: JSZip, id: st
 	try {
 		let filePromises = fileNames.map(async (fileName) => {
 			let file = zip.file(fileName);
+			if (!fileName.startsWith("courses/")) {
+				throw new InsightError("fileName doesn't start with courses/");
+			}
 			if (file != null) {
 				try {
 					let jsonContent = await file.async("string");
@@ -241,13 +244,18 @@ export async function getContentsOfFiles(fileNames: string[], zip: JSZip, id: st
 				return [];
 			}
 		});
-		let contentsInDifferentFiles = await Promise.all(filePromises);
+		let contentsInDifferentFiles: any[] = await Promise.allSettled(filePromises);
+		contentsInDifferentFiles = contentsInDifferentFiles.map((res) => {
+			if (res.status === "fulfilled") {
+				return res.value;
+			} else {
+				return [];
+			}
+		});
 		return [].concat(...contentsInDifferentFiles);
 	} catch (err) {
 		throw new InsightError("DifferentFiles issue");
 	}
-
-
 }
 
 export function filterRoomsFileNames(fileNames: string[]) {
