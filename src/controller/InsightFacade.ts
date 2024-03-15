@@ -8,9 +8,10 @@ import {
 	filterByAnyKeys,
 	filterByWhere,
 	transform,
+	getGroupKeys,
 } from "./PerformQueryHelperFunctions";
 
-import {getQueryAsJson, validateQuery} from "./ValidateQueryHelperFunctions";
+import {getApplyKeys, getQueryAsJson, validateQuery} from "./ValidateQueryHelperFunctions";
 
 import {
 	parseBuildingTable,
@@ -89,11 +90,21 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.resolve(addedDatasets);
 	}
 
-	public async performQuery(query: unknown): Promise<InsightResult[]> {
+	public async performQuery(query: any): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
 		let parsedQueryKeys = Object.keys(parsedQuery);
 		await validateQuery(query); // TODO add validations T-T
 		let anyKeys: string[] = getAnyKeys(parsedQuery);
+		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
+			let applyObjects = query.TRANSFORMATIONS["APPLY"];
+			for (let applyObject of applyObjects) {
+				let applyObjectKeys = Object.keys(applyObject);
+				let applyObjectKey = applyObjectKeys[0];
+				let applyObjectValue = applyObject[applyObjectKey];
+				let applyObjectValueKeys = Object.keys(applyObjectValue);
+				anyKeys.push(applyObjectValue[applyObjectValueKeys[0]]);
+			}
+		}
 		let allData: object[] = await getData();
 		let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
 		let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);

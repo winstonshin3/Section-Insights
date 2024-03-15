@@ -1,0 +1,54 @@
+{
+	"title": "validGroupNotInColumns",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 97
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"applyRule"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"applyRule": {
+						"MIN": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"applyRule": 97.47
+		},
+		{
+			"applyRule": 98
+		},
+		{
+			"applyRule": 97.5
+		},
+		{
+			"applyRule": 98.75
+		},
+		{
+			"applyRule": 97.09
+		},
+		{
+			"applyRule": 97.09
+		},
+		{
+			"applyRule": 97.33
+		},
+		{
+			"applyRule": 98.98
+		}
+	]
+}
