@@ -175,10 +175,10 @@ describe("InsightFacade", function () {
 			await clearDisk();
 		});
 
-		describe.only("valid queries", function () {
+		describe("valid queries", function () {
 			let validQueries: ITestQuery[];
 			try {
-				validQueries = readFileQueries("validTemp");
+				validQueries = readFileQueries("valid");
 			} catch (e: unknown) {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
