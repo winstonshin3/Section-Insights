@@ -114,7 +114,11 @@ export default class InsightFacade implements IInsightFacade {
 		let order = query.OPTIONS.ORDER;
 		if (typeof order === "string") {
 			queryResults.sort((a, b) => {
-				return a[order] - b[order];
+				if (order["dir"] === "DOWN") {
+					return a[order] - b[order];
+				} else {
+					return b[order] - a[order];
+				}
 			});
 		} else if (Array.isArray(order)) {
 			queryResults.sort((a, b) => {
