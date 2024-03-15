@@ -94,20 +94,21 @@ export default class InsightFacade implements IInsightFacade {
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
 		let parsedQueryKeys = Object.keys(parsedQuery);
-		await validateQuery(query); // TODO add validations T-T
-		let anyKeys: string[] = getAnyKeys(parsedQuery);
-		let allData: object[] = await getData();
-		let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
-		let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
-		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
-			queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
-		}
-		// let orderKey = getOrderKey(parsedQuery.OPTIONS);
-		// queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
+		// await validateQuery(query); // TODO add validations T-T
+		// let anyKeys: string[] = getAnyKeys(parsedQuery);
+		// let allData: object[] = await getData();
+		// let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
+		// let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
+		// if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
+		// 	queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
+		// }
+		// // let orderKey = getOrderKey(parsedQuery.OPTIONS);
+		// // queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
+		// // return Promise.resolve(queryResults);
+		// selectKeyValuesInColumn(queryResults, anyKeys);
+		// validateResultSize(queryResults);
 		// return Promise.resolve(queryResults);
-		selectKeyValuesInColumn(queryResults, anyKeys);
-		validateResultSize(queryResults);
-		return Promise.resolve(queryResults);
+		return Promise.resolve([]);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
