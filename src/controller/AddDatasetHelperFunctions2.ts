@@ -79,25 +79,25 @@ export function filterCacheData(unfilteredCacheData: any[]) {
 	});
 }
 
-export function filterValidRoomTable(allTables: any[]) {
-	return allTables.filter((table) => {
-		return validRoomTable(table);
-	});
-}
-
-export function validRoomTable(table: any) {
-	let rowNode = getFirstNodeByNodeName(table, "tr");
-	let columnNodes = getNodesByNodeName(rowNode, "th");
-	let columnNames = columnNodes.map((columnNode) => {
-		for (let attr of columnNode.attrs) {
-			if (attr["name"] === "class") {
-				return attr["value"];
-			} else {
-				return "";
-			}
-		}
-	});
-}
+// export function filterValidRoomTable(allTables: any[]) {
+// 	return allTables.filter((table) => {
+// 		return validRoomTable(table);
+// 	});
+// }
+//
+// export function validRoomTable(table: any) {
+// 	let rowNode = getFirstNodeByNodeName(table, "tr");
+// 	let columnNodes = getNodesByNodeName(rowNode, "th");
+// 	let columnNames = columnNodes.map((columnNode) => {
+// 		for (let attr of columnNode.attrs) {
+// 			if (attr["name"] === "class") {
+// 				return attr["value"];
+// 			} else {
+// 				return "";
+// 			}
+// 		}
+// 	});
+// }
 
 export function getNodesByNodeName(startingNode: any, nodeName: string) {
 	let frontier: any[] = [];
@@ -118,26 +118,25 @@ export function getNodesByNodeName(startingNode: any, nodeName: string) {
 	return result;
 }
 
-export function getFirstNodeByNodeName(startingNode: any, nodeName: string) {
-	let frontier: any[] = [];
-	let currentNode: any;
-	let result: any[] = [];
-	frontier.push(startingNode);
-	while(!(frontier.length === 0)) {
-		currentNode = frontier.pop();
-		let keys = Object.keys(currentNode);
-		if (currentNode["nodeName"] === nodeName && keys.includes("childNodes")) {
-			result.push(currentNode);
-			break;
-		} else if (keys.includes("childNodes")) {
-			if (Array.isArray(currentNode.childNodes)) {
-				frontier.push(...currentNode.childNodes);
-			}
-		}
-	}
-	return result;
-}
-
+// export function getFirstNodeByNodeName(startingNode: any, nodeName: string) {
+// 	let frontier: any[] = [];
+// 	let currentNode: any;
+// 	let result: any[] = [];
+// 	frontier.push(startingNode);
+// 	while(!(frontier.length === 0)) {
+// 		currentNode = frontier.pop();
+// 		let keys = Object.keys(currentNode);
+// 		if (currentNode["nodeName"] === nodeName && keys.includes("childNodes")) {
+// 			result.push(currentNode);
+// 			break;
+// 		} else if (keys.includes("childNodes")) {
+// 			if (Array.isArray(currentNode.childNodes)) {
+// 				frontier.push(...currentNode.childNodes);
+// 			}
+// 		}
+// 	}
+// 	return result;
+// }
 
 export function getMap(dataPoints: any, section: string) {
 	return dataPoints.map((data: any) => ({
