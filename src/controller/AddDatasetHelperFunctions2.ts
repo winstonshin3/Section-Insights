@@ -8,6 +8,7 @@ import {
 	getChildNodeByNodeName,
 	getColumnValue
 } from "./AddDatasetHelperFunctions1";
+import * as fs from "fs-extra";
 
 export async function getContentsRoomFiles(fileNames: string[], zip: JSZip, id: string) {
 	let filePromises = fileNames.map(async (fileName) => {
@@ -207,4 +208,27 @@ export function matchByMarker(roomTables: any[], buildingTable: any[]){
 		}
 	}
 	return result;
+}
+
+export async function writeByChunks(contentsInZip: any[], id: string, kind: InsightDatasetKind) {
+	let chunks: any[] = [];
+	let temp = {...contentsInZip};
+	let chunkSize = 15000;
+	for (let i = 0; i < contentsInZip.length; i += chunkSize) {
+		chunks.push(contentsInZip.slice(i, i + chunkSize));
+	}
+	chunks = chunks.map((chunk) => {
+		return makeInsightResult(id, kind, chunk);
+	});
+	try {
+		let jobs = [];
+		let count = 0;
+		for (let chunk of chunks) {
+			count++;
+			jobs.push(fs.writeJson(`./data/${id}${count}`, chunk));
+		}
+		await Promise.all(jobs);
+	} catch {
+		throw new InsightError();
+	}
 }
