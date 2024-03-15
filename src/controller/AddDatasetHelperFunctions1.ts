@@ -225,22 +225,22 @@ export function filterSectionFileNames(fileNames: string[]) {
 }
 
 export async function getContentsOfFiles(fileNames: string[], zip: JSZip, id: string) {
-	let filePromises = fileNames.map(async (fileName) => {
-		let file = zip.file(fileName);
-		if (file != null) {
-			try {
-				let jsonContent = await file.async("string");
-				let jsonObject = JSON.parse(jsonContent);
-				let dataPoints = jsonObject.result;
-				return getMap(dataPoints, id);
-			} catch (e) {
-				throw new InsightError("Error processing file: " + fileName);
-			}
-		} else {
-			return [];
-		}
-	});
 	try {
+		let filePromises = fileNames.map(async (fileName) => {
+			let file = zip.file(fileName);
+			if (file != null) {
+				try {
+					let jsonContent = await file.async("string");
+					let jsonObject = JSON.parse(jsonContent);
+					let dataPoints = jsonObject.result;
+					return getMap(dataPoints, id);
+				} catch (e) {
+					throw new InsightError("Error processing file: " + fileName);
+				}
+			} else {
+				return [];
+			}
+		});
 		let contentsInDifferentFiles = await Promise.all(filePromises);
 		return [].concat(...contentsInDifferentFiles);
 	} catch (err) {
