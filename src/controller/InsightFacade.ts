@@ -4,11 +4,9 @@ import {
 	InsightDatasetKind,
 	InsightResult,
 	InsightError,
-	ResultTooLargeError,
 } from "./IInsightFacade";
 
 import {
-	performWhere,
 	getData, getAnyKeys, selectKeyValuesInColumn, validateResultSize, filterByAnyKeys, filterByWhere, transform,
 } from "./PerformQueryHelperFunctions";
 
@@ -47,10 +45,8 @@ import {
  *
  */
 export default class InsightFacade implements IInsightFacade {
-	private datasets: Map<string, any> = new Map<string, any>();
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
-		this.datasets = new Map<string, InsightDataset>();
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
@@ -95,10 +91,10 @@ export default class InsightFacade implements IInsightFacade {
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
 		let parsedQueryKeys = Object.keys(parsedQuery);
-		// await validateQuery(query); TODO add validations T-T
+		await validateQuery(query); // TODO add validations T-T
 		let anyKeys: string[] = getAnyKeys(parsedQuery);
 		let allData: object[] = await getData();
-		let relevantData = filterByAnyKeys(anyKeys, allData);
+		let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
 		let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
 		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
 			queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
@@ -118,6 +114,7 @@ export default class InsightFacade implements IInsightFacade {
 		}
 
 		try {
+			await fs.ensureDir("./data");
 			let fileNames = await fs.readdir("./data");
 			// await fs.remove(`./data/${id}.json`);
 			if (fileNames.includes(`${id}`)) {

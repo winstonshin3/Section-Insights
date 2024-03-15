@@ -38,6 +38,52 @@ describe("InsightFacade", function () {
 		await clearDisk();
 	});
 
+	describe("RemoveDataset", function () {
+		beforeEach(function () {
+			// This section resets the insightFacade instance
+			// This runs before each test
+			facade = new InsightFacade();
+		});
+
+		afterEach(async function () {
+			// This section resets the data directory (removing any cached data)
+			// This runs after each test, which should make each test independent of the previous one
+			await clearDisk();
+		});
+
+		it("Should remove data", async function () {
+			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			const result = facade.removeDataset("sections");
+			return expect(result).to.eventually.deep.equal("sections");
+		});
+
+		it("Should reject data", async function () {
+			const result = facade.removeDataset("");
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+	});
+
+	describe("ListDataset", async function () {
+		beforeEach(async function () {
+			// This section resets the insightFacade instance
+			// This runs before each test
+			facade = new InsightFacade();
+			await clearDisk();
+		});
+
+		afterEach(async function () {
+			// This section resets the data directory (removing any cached data)
+			// This runs after each test, which should make each test independent of the previous one
+			await clearDisk();
+		});
+		it("add once", async function () {
+			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			const result = await facade.listDatasets();
+			let expected = [{id: "sections", kind: InsightDatasetKind.Sections, numRows: 64612}];
+			return expect(result).to.have.deep.members(expected);
+		});
+	});
+
 	describe("AddDataset", function () {
 		beforeEach(async function () {
 			// This section resets the insightFacade instance
@@ -105,31 +151,6 @@ describe("InsightFacade", function () {
 		});
 	});
 
-	describe("RemoveDataset", function () {
-		beforeEach(function () {
-			// This section resets the insightFacade instance
-			// This runs before each test
-			facade = new InsightFacade();
-		});
-
-		afterEach(async function () {
-			// This section resets the data directory (removing any cached data)
-			// This runs after each test, which should make each test independent of the previous one
-			await clearDisk();
-		});
-
-		it("Should remove data", async function () {
-			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-			const result = facade.removeDataset("sections");
-			return expect(result).to.eventually.deep.equal("sections");
-		});
-
-		it("Should reject data", async function () {
-			const result = facade.removeDataset("");
-			return expect(result).to.eventually.be.rejectedWith(InsightError);
-		});
-	});
-
 	/*
 	 * This test suite dynamically generates tests from the JSON files in test/resources/queries.
 	 * You can and should still make tests the normal way, this is just a convenient tool for a majority of queries.
@@ -146,7 +167,6 @@ describe("InsightFacade", function () {
 			try {
 				await Promise.all(loadDatasetPromises);
 			} catch (err) {
-				console.log(err);
 				throw new Error(`In PerformQuery Before hook, dataset(s) failed to be added. \n${err}`);
 			}
 		});
@@ -155,10 +175,10 @@ describe("InsightFacade", function () {
 			// await clearDisk();
 		});
 
-		describe.only("valid queries", function () {
+		describe("valid queries", function () {
 			let validQueries: ITestQuery[];
 			try {
-				validQueries = readFileQueries("validTemp");
+				validQueries = readFileQueries("valid");
 			} catch (e: unknown) {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
@@ -171,10 +191,7 @@ describe("InsightFacade", function () {
 							expect(result).to.have.deep.members(test.expected);
 						})
 						.catch((err: any) => {
-							console.log(err);
-							assert.fail("Shouldn't throw anything!");
-							// console.log(err);
-							// assert.fail(`performQuery threw unexpected error: ${err}`);
+							assert.fail(`performQuery threw unexpected error: ${err}`);
 						});
 				});
 			});
@@ -196,7 +213,7 @@ describe("InsightFacade", function () {
 							assert.fail("Shouldn't throw anything!");
 						})
 						.catch((err: any) => {
-							console.log(err.message.substring(0,50));
+							// console.log(err.message.substring(0,50));
 							if (test.expected === "ResultTooLargeError") {
 								expect(err).to.be.instanceOf(ResultTooLargeError);
 							} else {
@@ -205,25 +222,6 @@ describe("InsightFacade", function () {
 						});
 				});
 			});
-		});
-	});
-
-	describe("ListDataset", function () {
-		beforeEach(function () {
-			// This section resets the insightFacade instance
-			// This runs before each test
-			facade = new InsightFacade();
-		});
-
-		afterEach(async function () {
-			// This section resets the data directory (removing any cached data)
-			// This runs after each test, which should make each test independent of the previous one
-			// await clearDisk();
-		});
-		it("add once", async function () {
-			const result = await facade.listDatasets();
-			let expected = [{id: "sections", kind: InsightDatasetKind.Sections, numRows: 64612}];
-			return expect(result).to.have.deep.members(expected);
 		});
 	});
 });

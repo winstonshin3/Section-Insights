@@ -1,8 +1,7 @@
 import * as fs from "fs-extra";
 import {InsightDatasetKind, InsightError, InsightResult} from "./IInsightFacade";
 import JSZip from "jszip";
-import http from "node:http";
-import * as parse5 from "parse5";
+
 import {fetchWebContent, getMap, parseBuildingRow} from "./AddDatasetHelperFunctions2";
 
 export interface Room {

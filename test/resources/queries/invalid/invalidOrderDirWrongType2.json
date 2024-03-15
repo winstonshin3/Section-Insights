@@ -1,0 +1,21 @@
+{
+	"title": "invalidOrderDirWrongType2",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_seats"
+			],
+			"ORDER": {
+				"dir": {},
+				"keys": [
+					"rooms_shortname",
+					"rooms_seats"
+				]
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

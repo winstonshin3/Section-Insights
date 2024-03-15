@@ -1,0 +1,12 @@
+{
+	"title": "invalidColumnsMustBeNonEmptyArray",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [],
+			"ORDER": "rooms_shortname"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

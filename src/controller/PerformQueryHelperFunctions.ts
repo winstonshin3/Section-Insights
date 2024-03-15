@@ -133,7 +133,6 @@ export function applyRuleAvg(smKey: string, group: any[]) {
 	filteredGroup.forEach((queryResult) => {
 		sum = sum.add(new Decimal(queryResult[smKey]));
 	});
-	console.log(filteredGroup);
 	return Number((sum.toNumber() / filteredGroup.length).toFixed(2));
 }
 

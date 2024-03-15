@@ -1,0 +1,20 @@
+{
+	"title": "invalidOrderMissingDir",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_seats"
+			],
+			"ORDER": {
+				"keys": [
+					"rooms_shortname",
+					"rooms_seats"
+				]
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
