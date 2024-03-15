@@ -71,6 +71,9 @@ export default class InsightFacade implements IInsightFacade {
 				let jsonContent = await file.async("string");
 				let jsonObject = parse5.parse(jsonContent); // TODO parse can throw error?
 				let table = getChildNodeByNodeName(jsonObject, "tbody"); // TODO MAKE FETCH TABLES
+				if (table.length === 0) {
+					throw new InsightError("No matching table.");
+				}
 				let result = parseBuildingTable(table);
 				let geoLocations: any[] = await getGeoLocation(result);
 				mergeArrays(result, geoLocations); // TODO Result now contains everything from index!

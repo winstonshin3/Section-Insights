@@ -1,0 +1,209 @@
+{
+	"title": "validTransformationLonAVG",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"avgLon"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": [
+					"rooms_shortname"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"rooms_shortname"
+			],
+			"APPLY": [
+				{
+					"avgLon": {
+						"AVG": "rooms_lon"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"rooms_shortname": "AERL",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "ALRD",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "ANGU",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "ANSO",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "AUDX",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "BIOL",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "BRKX",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "BUCH",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "CEME",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "CHBE",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "CHEM",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "CIRS",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "DMP",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "EOSM",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "ESB",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "FNH",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "FORW",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "FRDM",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "FSC",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "GEOG",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "HEBB",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "HENN",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "IBLC",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "IONA",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "LASR",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "LSC",
+			"avgLon": -123.24
+		},
+		{
+			"rooms_shortname": "LSK",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "MATH",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "MATX",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "MCLD",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "MCML",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "MGYM",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "ORCH",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "OSBO",
+			"avgLon": -123.24
+		},
+		{
+			"rooms_shortname": "PCOH",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "PHRM",
+			"avgLon": -123.24
+		},
+		{
+			"rooms_shortname": "SCRF",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "SOWK",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "SPPH",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "SRC",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "SWNG",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "UCLL",
+			"avgLon": -123.26
+		},
+		{
+			"rooms_shortname": "WESB",
+			"avgLon": -123.25
+		},
+		{
+			"rooms_shortname": "WOOD",
+			"avgLon": -123.25
+		}
+	]
+}

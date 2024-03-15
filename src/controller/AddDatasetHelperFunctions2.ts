@@ -2,7 +2,12 @@ import JSZip from "jszip";
 import * as parse5 from "parse5";
 import {InsightDatasetKind, InsightError, InsightResult} from "./IInsightFacade";
 import http from "node:http";
-import {assignRoomValue, filterNodeListByNodeName, getColumnValue} from "./AddDatasetHelperFunctions1";
+import {
+	assignRoomValue,
+	filterNodeListByNodeName,
+	getChildNodeByNodeName,
+	getColumnValue
+} from "./AddDatasetHelperFunctions1";
 
 export async function getContentsRoomFiles(fileNames: string[], zip: JSZip, id: string) {
 	let filePromises = fileNames.map(async (fileName) => {
@@ -27,8 +32,13 @@ export async function getContentsRoomFiles(fileNames: string[], zip: JSZip, id: 
 			return [];
 		}
 	});
-	let contentsInDifferentFiles = await Promise.all(filePromises);
-	return ([] as any[][]).concat(...contentsInDifferentFiles);
+	try {
+		let contentsInDifferentFiles = await Promise.all(filePromises);
+		return ([] as any[][]).concat(...contentsInDifferentFiles);
+	} catch (err) {
+		throw new InsightError("Work");
+	}
+
 }
 
 export function getTableColumns(tableRow: any[]) {

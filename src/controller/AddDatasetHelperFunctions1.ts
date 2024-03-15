@@ -201,9 +201,15 @@ export async function getGeoLocation(result: Room[]) {
 	for (let res of result) {
 		jobs.push(fetchWebContent(res.address));
 	}
-	let jobResult: any[] = await Promise.all(jobs);
-	const parsedData = jobResult.map((item) => JSON.parse(item));
-	return parsedData;
+	let jobResult: any[] = await Promise.allSettled(jobs);
+	let resolvedResults = jobResult.map((res) => {
+		if (res.status === "fulfilled") {
+			return res.value;
+		} else {
+			return "{lat:'null',lon:'null'}";
+		}
+	});
+	return resolvedResults.map((item) => JSON.parse(item));
 }
 
 export function mergeArrays(array1: any[], array2: any[]) {
@@ -234,8 +240,14 @@ export async function getContentsOfFiles(fileNames: string[], zip: JSZip, id: st
 			return [];
 		}
 	});
-	let contentsInDifferentFiles = await Promise.all(filePromises);
-	return [].concat(...contentsInDifferentFiles);
+	try {
+		let contentsInDifferentFiles = await Promise.all(filePromises);
+		return [].concat(...contentsInDifferentFiles);
+	} catch (err) {
+		throw new InsightError("DifferentFiles issue");
+	}
+
+
 }
 
 export function filterRoomsFileNames(fileNames: string[]) {
