@@ -208,3 +208,9 @@ export function matchByMarker(roomTables: any[], buildingTable: any[]){
 	}
 	return result;
 }
+
+export function calculateDataSize(data: any) {
+	const jsonString = JSON.stringify(data);
+	const byteSize = Buffer.byteLength(jsonString, "utf8");
+	console.log(`The size of the data is approximately ${byteSize} bytes.`);
+}

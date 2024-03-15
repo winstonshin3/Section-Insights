@@ -32,11 +32,15 @@ import * as fs from "fs-extra";
 import * as parse5 from "parse5";
 import {
 	addRoomId,
+	calculateDataSize,
 	filterCacheData,
 	getContentsRoomFiles,
 	makeInsightResult,
 	matchByMarker
 } from "./AddDatasetHelperFunctions2";
+import {util} from "chai";
+import stream from "stream";
+import {promisify} from "util";
 
 
 /**
@@ -57,12 +61,20 @@ export default class InsightFacade implements IInsightFacade {
 		// TODO didn't validate folder before
 		// console.log("What is this: " + fileInFolder["courses/"].name);
 		await fs.ensureDir("./data");
+		// ...
+
 		if (kind === "sections") {
 			validateSectionsFiles(fileNames);
 			let filteredFileNames = filterSectionFileNames(fileNames);
 			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
 			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-			await fs.writeJson(`./data/${id}`, cacheData);
+			calculateDataSize(cacheData);
+			const writeStream = fs.createWriteStream(`./data/${id}`,cacheData);
+			const pipeline = promisify(stream.pipeline);
+			await pipeline(
+				stream.Readable.from(JSON.stringify(cacheData)),
+				writeStream
+			);
 		}
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
