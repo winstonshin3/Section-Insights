@@ -111,8 +111,30 @@ export default class InsightFacade implements IInsightFacade {
 		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
 			queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
 		}
+		let order = query.OPTIONS.ORDER;
+		if (typeof order === "string") {
+			queryResults.sort((a, b) => {
+				return a[order] - b[order];
+			});
+		} else if (Array.isArray(order)) {
+			queryResults.sort((a, b) => {
+				let diff = 0;
+				for (let o of order) {
+					diff = a[o] - b[o];
+					if (diff !== 0) {
+						break;
+					}
+				}
+				if (order["dir"] === "DOWN") {
+					return -diff;
+				} else {
+					return diff;
+				}
+			});
+		}
+
 		// let orderKey = getOrderKey(parsedQuery.OPTIONS);
-		// queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
+		//
 		// return Promise.resolve(queryResults);
 		selectKeyValuesInColumn(queryResults, anyKeys);
 		validateResultSize(queryResults);
