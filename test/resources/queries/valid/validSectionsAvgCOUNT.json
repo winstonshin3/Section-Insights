@@ -1,0 +1,63 @@
+{
+	"title": "validSectionsAvgCOUNT",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 97
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"applyRule"
+			]
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"applyRule": {
+						"COUNT": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "cnps",
+			"applyRule": 2
+		},
+		{
+			"sections_dept": "crwr",
+			"applyRule": 1
+		},
+		{
+			"sections_dept": "educ",
+			"applyRule": 1
+		},
+		{
+			"sections_dept": "eece",
+			"applyRule": 1
+		},
+		{
+			"sections_dept": "epse",
+			"applyRule": 13
+		},
+		{
+			"sections_dept": "math",
+			"applyRule": 4
+		},
+		{
+			"sections_dept": "nurs",
+			"applyRule": 6
+		},
+		{
+			"sections_dept": "spph",
+			"applyRule": 1
+		}
+	]
+}

@@ -1,0 +1,9 @@
+{
+	"title": "invalidOptionsType2",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": 42
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -1,0 +1,32 @@
+{
+	"title": "invalidApplyApplyTokenValueSUM",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"countSeats"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": [
+					"rooms_shortname"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"rooms_shortname"
+			],
+			"APPLY": [
+				{
+					"countSeats": {
+						"SUM": "rooms_name"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

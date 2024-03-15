@@ -1,0 +1,22 @@
+{
+	"title": "invalidOrderExtraKeys",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_seats"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": [
+					"rooms_shortname",
+					"rooms_seats"
+				],
+				"hi": []
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

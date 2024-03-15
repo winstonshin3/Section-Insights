@@ -1,0 +1,9 @@
+{
+	"title": "invalidWhereType1",
+	"input": {
+		"WHERE": "",
+		"OPTIONS": {}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

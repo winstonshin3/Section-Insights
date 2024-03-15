@@ -1,0 +1,9 @@
+{
+	"title": "invalidMissingColumns",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

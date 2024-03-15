@@ -1,0 +1,18 @@
+{
+	"title": "invalidOrderKeysEmptyArray",
+	"input": {
+		"WHERE": {},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_seats"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": []
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

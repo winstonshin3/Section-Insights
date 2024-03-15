@@ -1,0 +1,19 @@
+{
+  "title": "invalidApplyWrongType1",
+  "input": {
+    "WHERE": {},
+    "OPTIONS": {
+      "COLUMNS": ["rooms_shortname", "countSeats"],
+      "ORDER": {
+        "dir": "UP",
+        "keys": ["rooms_shortname"]
+      }
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": ["rooms_shortname"],
+      "APPLY": {}
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
