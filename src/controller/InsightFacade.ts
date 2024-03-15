@@ -56,14 +56,14 @@ export default class InsightFacade implements IInsightFacade {
 		let fileNames = Object.keys(fileInFolder);
 		// TODO didn't validate folder before
 		// console.log("What is this: " + fileInFolder["courses/"].name);
-		if (kind === "sections") {
-			validateSectionsFiles(fileNames);
-			let filteredFileNames = filterSectionFileNames(fileNames);
-			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-			await fs.ensureDir("./data");
-			await fs.writeJson(`./data/${id}`, cacheData);
-		}
+		// if (kind === "sections") {
+		// 	validateSectionsFiles(fileNames);
+		// 	let filteredFileNames = filterSectionFileNames(fileNames);
+		// 	let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
+		// 	let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+		// 	await fs.ensureDir("./data");
+		// 	await fs.writeJson(`./data/${id}`, cacheData);
+		// }
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
 			let file = zip.file("index.htm");
@@ -94,21 +94,20 @@ export default class InsightFacade implements IInsightFacade {
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
 		let parsedQueryKeys = Object.keys(parsedQuery);
-		// await validateQuery(query); // TODO add validations T-T
-		// let anyKeys: string[] = getAnyKeys(parsedQuery);
-		// let allData: object[] = await getData();
-		// let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
-		// let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
-		// if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
-		// 	queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
-		// }
-		// // let orderKey = getOrderKey(parsedQuery.OPTIONS);
-		// // queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
-		// // return Promise.resolve(queryResults);
-		// selectKeyValuesInColumn(queryResults, anyKeys);
-		// validateResultSize(queryResults);
+		await validateQuery(query); // TODO add validations T-T
+		let anyKeys: string[] = getAnyKeys(parsedQuery);
+		let allData: object[] = await getData();
+		let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
+		let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
+		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
+			queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
+		}
+		// let orderKey = getOrderKey(parsedQuery.OPTIONS);
+		// queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
 		// return Promise.resolve(queryResults);
-		return Promise.resolve([]);
+		selectKeyValuesInColumn(queryResults, anyKeys);
+		validateResultSize(queryResults);
+		return Promise.resolve(queryResults);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
