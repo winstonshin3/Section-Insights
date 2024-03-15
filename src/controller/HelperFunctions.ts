@@ -2,7 +2,6 @@ import {InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError} fr
 import * as JSZip from "jszip";
 import * as fs from "fs-extra";
 
-
 export function performWhere(query: object, section: object): boolean {
 	let result: boolean = true;
 	let key: string = Object.keys(query)[0];
@@ -21,15 +20,15 @@ export function performWhere(query: object, section: object): boolean {
 			}
 			return result;
 		case "LT":
-			return result = lt(value, section);
+			return (result = lt(value, section));
 		case "GT":
-			return result = gt(value, section);
+			return (result = gt(value, section));
 		case "EQ":
-			return result = eq(value, section);
+			return (result = eq(value, section));
 		case "IS":
-			return result = is(value, section);
+			return (result = is(value, section));
 		case "NOT":
-			return result = !(performWhere(value, section));
+			return (result = !performWhere(value, section));
 		default:
 			throw new InsightError("Invalid filter key: " + key);
 	}
@@ -117,7 +116,6 @@ export function is(mKeyValuePair: object, section: object): boolean {
 	return false;
 }
 
-
 export function getOrderKey(query: object): string {
 	let columnsPair = Object.entries(query)[1];
 	return Object.values(columnsPair)[1];
@@ -147,4 +145,3 @@ export async function getData() {
 		throw new InsightError("Blah");
 	}
 }
-

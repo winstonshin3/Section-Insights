@@ -25,7 +25,7 @@ let validColumnNames: string[] = [
 	"views-field views-field-field-room-number",
 	"views-field views-field-field-room-capacity",
 	"views-field views-field-field-room-furniture",
-	"views-field views-field-field-room-type"
+	"views-field views-field-field-room-type",
 ];
 
 export async function validateId(id: string) {
@@ -65,7 +65,8 @@ export function validateRoomsFiles(fileNames: string[]) {
 		"campus/",
 		"campus/discover/",
 		"campus/discover/buildings-and-classrooms/",
-		"index.htm"];
+		"index.htm",
+	];
 	for (let fileName of mustHaveFiles) {
 		if (!fileNames.includes(fileName)) {
 			throw new InsightError("Rooms is missing the folder: " + [`${fileName}`]);
@@ -83,25 +84,24 @@ export function parseBuildingTable(tableRows: any) {
 	return result;
 }
 
-
 export function assignRoomValue(room: any, columnName: string, columnValue: string) {
 	switch (columnName) {
 		case "views-field views-field-field-building-code":
-			return room.shortName = columnValue;
+			return (room.shortName = columnValue);
 		case "views-field views-field-field-building-address":
-			return room.address = columnValue;
+			return (room.address = columnValue);
 		case "views-field views-field-title":
-			return room.fullName = columnValue;
+			return (room.fullName = columnValue);
 		case "views-field views-field-field-room-number":
-			return room.number = columnValue;
+			return (room.number = columnValue);
 		case "views-field views-field-field-room-capacity":
-			return room.seats = columnValue;
+			return (room.seats = columnValue);
 		case "views-field views-field-field-room-furniture":
-			return room.furniture = columnValue;
+			return (room.furniture = columnValue);
 		case "views-field views-field-field-room-type":
-			return room.type = columnValue;
+			return (room.type = columnValue);
 		case "views-field views-field-nothing":
-			return room.href = columnValue;
+			return (room.href = columnValue);
 		default:
 			return "null";
 	}
@@ -178,7 +178,7 @@ export function getChildNodeByNodeName(startingNode: any, nodeName: string) {
 	let currentNode: any;
 	let result: any[] = [];
 	frontier.push(startingNode);
-	while(!(frontier.length === 0)) {
+	while (!(frontier.length === 0)) {
 		currentNode = frontier.pop();
 		let keys = Object.keys(currentNode);
 		if (currentNode["nodeName"] === nodeName && keys.includes("childNodes")) {
@@ -194,7 +194,6 @@ export function getChildNodeByNodeName(startingNode: any, nodeName: string) {
 	}
 	return result;
 }
-
 
 export async function getGeoLocation(result: Room[]) {
 	let jobs = [];
@@ -263,4 +262,3 @@ export function filterRoomsFileNames(fileNames: string[]) {
 		return fileName.startsWith("campus/discover/buildings-and-classrooms/") && !fileName.endsWith("/");
 	});
 }
-

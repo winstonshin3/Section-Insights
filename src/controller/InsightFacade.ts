@@ -1,17 +1,16 @@
-import {
-	IInsightFacade,
-	InsightDataset,
-	InsightDatasetKind,
-	InsightResult,
-	InsightError,
-} from "./IInsightFacade";
+import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightResult, InsightError} from "./IInsightFacade";
 
 import {
-	getData, getAnyKeys, selectKeyValuesInColumn, validateResultSize, filterByAnyKeys, filterByWhere, transform,
+	getData,
+	getAnyKeys,
+	selectKeyValuesInColumn,
+	validateResultSize,
+	filterByAnyKeys,
+	filterByWhere,
+	transform,
 } from "./PerformQueryHelperFunctions";
 
-import {getQueryAsJson, validateQuery
-} from "./ValidateQueryHelperFunctions";
+import {getQueryAsJson, validateQuery} from "./ValidateQueryHelperFunctions";
 
 import {
 	parseBuildingTable,
@@ -35,9 +34,8 @@ import {
 	filterCacheData,
 	getContentsRoomFiles,
 	makeInsightResult,
-	matchByMarker, validateZipContents
+	matchByMarker,
 } from "./AddDatasetHelperFunctions2";
-
 
 /**
  * This is the main programmatic entry point for the project.
@@ -56,15 +54,14 @@ export default class InsightFacade implements IInsightFacade {
 		let fileNames = Object.keys(fileInFolder);
 		// TODO didn't validate folder before
 		// console.log("What is this: " + fileInFolder["courses/"].name);
-		await fs.ensureDir("./data");
-		if (kind === "sections") {
-			validateSectionsFiles(fileNames);
-			let filteredFileNames = filterSectionFileNames(fileNames);
-			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-			validateZipContents(contentsInZip);
-			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-			await fs.writeJson(`./data/${id}`, cacheData);
-		}
+		// if (kind === "sections") {
+		// 	validateSectionsFiles(fileNames);
+		// 	let filteredFileNames = filterSectionFileNames(fileNames);
+		// 	let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
+		// 	let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+		// 	await fs.ensureDir("./data");
+		// 	await fs.writeJson(`./data/${id}`, cacheData);
+		// }
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
 			let file = zip.file("index.htm");
@@ -83,18 +80,14 @@ export default class InsightFacade implements IInsightFacade {
 				let unfilteredCacheData = matchByMarker(contentsInZip, result);
 				let unLabeledCacheData = filterCacheData(unfilteredCacheData);
 				let labeledCacheData = addRoomId(unLabeledCacheData, id);
-				let cacheData = makeInsightResult(id, kind, labeledCacheData);
-				try {
-					await fs.writeJson(`./data/${id}`, cacheData);
-				} catch (err) {
-					throw new InsightError("Error in writing sections file");
-				}
+				let cacheData: InsightResult = makeInsightResult(id, kind, labeledCacheData);
+				await fs.ensureDir("./data");
+				await fs.writeJson(`./data/${id}`, cacheData);
 			}
 		}
 		let addedDatasets = await getCurrentDatasets();
 		return Promise.resolve(addedDatasets);
 	}
-
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);

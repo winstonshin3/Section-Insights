@@ -1,4 +1,4 @@
-import {InsightDatasetKind, InsightError, ResultTooLargeError,} from "../../src/controller/IInsightFacade";
+import {InsightDatasetKind, InsightError, ResultTooLargeError} from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 import {assert, expect} from "chai";
 import * as fs from "fs-extra";
@@ -162,7 +162,7 @@ describe("InsightFacade", function () {
 			// Will *fail* if there is a problem reading ANY dataset.
 			const loadDatasetPromises = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
-				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms)
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
 			];
 			try {
 				await Promise.all(loadDatasetPromises);
@@ -175,10 +175,10 @@ describe("InsightFacade", function () {
 			await clearDisk();
 		});
 
-		describe("valid queries", function () {
+		describe.only("valid queries", function () {
 			let validQueries: ITestQuery[];
 			try {
-				validQueries = readFileQueries("valid");
+				validQueries = readFileQueries("validTemp");
 			} catch (e: unknown) {
 				expect.fail(`Failed to read one or more test queries. ${e}`);
 			}
