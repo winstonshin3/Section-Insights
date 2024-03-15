@@ -76,3 +76,23 @@ export function validateOptionKeys(optionKeys: any[]) {
 		throw new InsightError("OPTIONS must have COLUMNS");
 	}
 }
+
+export function validateAccessOneDataset(currentDataBase: string[], querySection: string) {
+	if (currentDataBase[0] === "null") {
+		currentDataBase[0] = querySection;
+	} else {
+		if (currentDataBase[0] !== querySection) {
+			throw new InsightError("Can't have multiple sections!");
+		}
+	}
+}
+
+export async function validateOption(query: any) {
+	let queryOptionKeys = Object.keys(query);
+	validateOptionKeys(queryOptionKeys);
+	validateAsArray("COLUMNS", query["COLUMNS"]);
+	validateColumns(query["COLUMNS"]);
+	if (queryOptionKeys.includes("ORDER")) {
+		validateOrder(query["ORDER"], query["COLUMNS"]);
+	}
+}

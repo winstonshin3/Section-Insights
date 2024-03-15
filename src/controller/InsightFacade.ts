@@ -1,17 +1,16 @@
-import {
-	IInsightFacade,
-	InsightDataset,
-	InsightDatasetKind,
-	InsightResult,
-	InsightError,
-} from "./IInsightFacade";
+import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightResult, InsightError} from "./IInsightFacade";
 
 import {
-	getData, getAnyKeys, selectKeyValuesInColumn, validateResultSize, filterByAnyKeys, filterByWhere, transform,
+	getData,
+	getAnyKeys,
+	selectKeyValuesInColumn,
+	validateResultSize,
+	filterByAnyKeys,
+	filterByWhere,
+	transform,
 } from "./PerformQueryHelperFunctions";
 
-import {getQueryAsJson, validateQuery
-} from "./ValidateQueryHelperFunctions";
+import {getQueryAsJson, validateQuery} from "./ValidateQueryHelperFunctions";
 
 import {
 	parseBuildingTable,
@@ -35,9 +34,8 @@ import {
 	filterCacheData,
 	getContentsRoomFiles,
 	makeInsightResult,
-	matchByMarker
+	matchByMarker,
 } from "./AddDatasetHelperFunctions2";
-
 
 /**
  * This is the main programmatic entry point for the project.
@@ -90,7 +88,6 @@ export default class InsightFacade implements IInsightFacade {
 		let addedDatasets = await getCurrentDatasets();
 		return Promise.resolve(addedDatasets);
 	}
-
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
