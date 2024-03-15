@@ -139,29 +139,17 @@ export function applyRuleAvg(smKey: string, group: any[]) {
 }
 
 export function makeGroups(groupKeys: string[], queryResults: any[]) {
-	let queryResultsCopy = [...queryResults];
-	let filteredResults = [];
-	while (queryResultsCopy.length !== 0) {
-		let queryResult = queryResultsCopy.pop();
-		let group = queryResultsCopy.filter((qr) => {
-			let matchesGroupValues = true;
-			for (let groupKey of groupKeys) {
-				matchesGroupValues = matchesGroupValues && queryResult[groupKey] === qr[groupKey];
-			}
-			return matchesGroupValues;
-		});
-		group.push(queryResult);
-		queryResultsCopy = queryResultsCopy.filter((qr) => {
-			for (let member of group) {
-				if (deepEquals(member, qr)) {
-					return false;
-				}
-			}
-			return true;
-		});
-		filteredResults.push(group);
+	const groups = new Map<string, any[]>();
+	for (const result of queryResults) {
+		const groupKey = groupKeys.map((key) => result[key]).join("|");
+		const group = groups.get(groupKey);
+		if (group) {
+			group.push(result);
+		} else {
+			groups.set(groupKey, [result]);
+		}
 	}
-	return filteredResults;
+	return Array.from(groups.values());
 }
 
 export function deepEquals(obj1: any, obj2: any) {
