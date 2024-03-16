@@ -145,3 +145,35 @@ export async function getData() {
 		throw new InsightError("Blah");
 	}
 }
+
+export function sortByString(order: any, queryResults: any[]) {
+	return queryResults.sort((a, b) => {
+		if (order["dir"] === "DOWN") {
+			return a[order] - b[order];
+		} else {
+			return b[order] - a[order];
+		}
+	});
+}
+
+export function sortByStrings(order: any, queryResults: any[]) {
+	let temp = Object.keys(order);
+	let keys = order[temp[1]];
+	queryResults.sort((a, b) => {
+		let diff = 0;
+		for (let o of keys) {
+			if (a[o] > b[o]) {
+				diff = 1;
+				break;
+			} else if (a[o] < b[o]) {
+				diff = -1;
+				break;
+			}
+		}
+		if (order["dir"] === "DOWN") {
+			return -diff;
+		} else {
+			return diff;
+		}
+	});
+}
