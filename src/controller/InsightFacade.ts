@@ -1,17 +1,17 @@
-import {
-	IInsightFacade,
-	InsightDataset,
-	InsightDatasetKind,
-	InsightResult,
-	InsightError,
-} from "./IInsightFacade";
+import {IInsightFacade, InsightDataset, InsightDatasetKind, InsightResult, InsightError} from "./IInsightFacade";
 
 import {
-	getData, getAnyKeys, selectKeyValuesInColumn, validateResultSize, filterByAnyKeys, filterByWhere, transform,
+	getData,
+	getAnyKeys,
+	selectKeyValuesInColumn,
+	validateResultSize,
+	filterByAnyKeys,
+	filterByWhere,
+	transform,
+	getGroupKeys,
 } from "./PerformQueryHelperFunctions";
 
-import {getQueryAsJson, validateQuery
-} from "./ValidateQueryHelperFunctions";
+import {getApplyKeys, getQueryAsJson, validateQuery} from "./ValidateQueryHelperFunctions";
 
 import {
 	parseBuildingTable,
@@ -35,9 +35,9 @@ import {
 	filterCacheData,
 	getContentsRoomFiles,
 	makeInsightResult,
-	matchByMarker
+	matchByMarker,
 } from "./AddDatasetHelperFunctions2";
-
+import {sortByString, sortByStrings} from "./HelperFunctions";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -56,14 +56,14 @@ export default class InsightFacade implements IInsightFacade {
 		let fileNames = Object.keys(fileInFolder);
 		// TODO didn't validate folder before
 		// console.log("What is this: " + fileInFolder["courses/"].name);
-		// if (kind === "sections") {
-		// 	validateSectionsFiles(fileNames);
-		// 	let filteredFileNames = filterSectionFileNames(fileNames);
-		// 	let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
-		// 	let cacheData: object = makeInsightResult(id, kind, contentsInZip);
-		// 	await fs.ensureDir("./data");
-		// 	await fs.writeJson(`./data/${id}`, cacheData);
-		// }
+		if (kind === "sections") {
+			validateSectionsFiles(fileNames);
+			let filteredFileNames = filterSectionFileNames(fileNames);
+			let contentsInZip = await getContentsOfFiles(filteredFileNames, zip, id);
+			let cacheData: object = makeInsightResult(id, kind, contentsInZip);
+			await fs.ensureDir("./data");
+			await fs.writeJson(`./data/${id}`, cacheData);
+		}
 		if (kind === "rooms") {
 			validateRoomsFiles(fileNames);
 			let file = zip.file("index.htm");
@@ -91,21 +91,34 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.resolve(addedDatasets);
 	}
 
-
-	public async performQuery(query: unknown): Promise<InsightResult[]> {
+	public async performQuery(query: any): Promise<InsightResult[]> {
 		let parsedQuery = getQueryAsJson(query);
 		let parsedQueryKeys = Object.keys(parsedQuery);
 		await validateQuery(query); // TODO add validations T-T
 		let anyKeys: string[] = getAnyKeys(parsedQuery);
+		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
+			let applyObjects = query.TRANSFORMATIONS["APPLY"];
+			for (let applyObject of applyObjects) {
+				let applyObjectKeys = Object.keys(applyObject);
+				let applyObjectKey = applyObjectKeys[0];
+				let applyObjectValue = applyObject[applyObjectKey];
+				let applyObjectValueKeys = Object.keys(applyObjectValue);
+				anyKeys.push(applyObjectValue[applyObjectValueKeys[0]]);
+			}
+		}
 		let allData: object[] = await getData();
 		let relevantData = filterByAnyKeys(anyKeys, allData); // TODO if relevantData is empty it means there is no matching dataset!
 		let queryResults = filterByWhere(parsedQuery.WHERE, relevantData);
 		if (parsedQueryKeys.includes("TRANSFORMATIONS")) {
 			queryResults = transform(parsedQuery.TRANSFORMATIONS, queryResults);
 		}
-		// let orderKey = getOrderKey(parsedQuery.OPTIONS);
-		// queryResults.sort((a, b) => a[orderKey] - b[orderKey]);
-		// return Promise.resolve(queryResults);
+		let order = query.OPTIONS.ORDER;
+		if (typeof order === "string") {
+			sortByString(order, queryResults);
+		}
+		if (typeof order === "object") {
+			sortByStrings(order, queryResults);
+		}
 		selectKeyValuesInColumn(queryResults, anyKeys);
 		validateResultSize(queryResults);
 		return Promise.resolve(queryResults);

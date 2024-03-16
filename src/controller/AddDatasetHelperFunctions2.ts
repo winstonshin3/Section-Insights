@@ -6,7 +6,7 @@ import {
 	assignRoomValue,
 	filterNodeListByNodeName,
 	getChildNodeByNodeName,
-	getColumnValue
+	getColumnValue,
 } from "./AddDatasetHelperFunctions1";
 
 export async function getContentsRoomFiles(fileNames: string[], zip: JSZip, id: string) {
@@ -38,7 +38,6 @@ export async function getContentsRoomFiles(fileNames: string[], zip: JSZip, id: 
 	} catch (err) {
 		throw new InsightError("Work");
 	}
-
 }
 
 export function getTableColumns(tableRow: any[]) {
@@ -71,7 +70,7 @@ export function addRoomId(unLabeledCacheData: any[], id: string) {
 		[`${id}_fullname`]: data.fullName as string,
 		[`${id}_shortname`]: data.shortName as string,
 		[`${id}_number`]: data.number as string,
-		[`${id}_name`]: (`${data.shortName}_${data.number}`) as string,
+		[`${id}_name`]: `${data.shortName}_${data.number}` as string,
 		[`${id}_address`]: data.address as string,
 		[`${id}_lat`]: Number(data.lat),
 		[`${id}_lon`]: Number(data.lon),
@@ -114,7 +113,7 @@ export function getNodesByNodeName(startingNode: any, nodeName: string) {
 	let currentNode: any;
 	let result: any[] = [];
 	frontier.push(startingNode);
-	while(!(frontier.length === 0)) {
+	while (!(frontier.length === 0)) {
 		currentNode = frontier.pop();
 		let keys = Object.keys(currentNode);
 		if (currentNode["nodeName"] === nodeName && keys.includes("childNodes")) {
@@ -192,7 +191,7 @@ export function fetchWebContent(address: string) {
 	});
 }
 
-export function matchByMarker(roomTables: any[], buildingTable: any[]){
+export function matchByMarker(roomTables: any[], buildingTable: any[]) {
 	let result = [];
 	let count = 0;
 	for (let roomTable of roomTables) {

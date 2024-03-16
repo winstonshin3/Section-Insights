@@ -2,10 +2,23 @@ import {InsightDatasetKind, InsightError, InsightResult, ResultTooLargeError} fr
 import JSZip = require("jszip");
 import * as fs from "fs-extra";
 import {validateNoDuplicateId} from "./AddDatasetHelperFunctions1";
-import {validateColumns, validateOptionKeys, validateOrder} from "./ValidateQueryHelperFunctions2";
+import {validateOption, validateColumns, validateOptionKeys, validateOrder} from "./ValidateQueryHelperFunctions2";
 
-let validSKeys = ["uuid", "id", "title", "instructor", "dept", "fullname",
-	"shortname", "number", "name", "address", "type", "furniture", "href"];
+let validSKeys = [
+	"uuid",
+	"id",
+	"title",
+	"instructor",
+	"dept",
+	"fullname",
+	"shortname",
+	"number",
+	"name",
+	"address",
+	"type",
+	"furniture",
+	"href",
+];
 let validMKeys = ["year", "avg", "pass", "fail", "audit", "", "lat", "lon", "seats"];
 export function getQueryAsJson(query: unknown) {
 	let queryContent;
@@ -31,9 +44,11 @@ export async function validateQuery(query: any) {
 	if (queryKeys.includes("TRANSFORMATIONS")) {
 		validateAsObject("TRANSFORMATIONS", query.TRANSFORMATIONS);
 		validateTranformation(query.TRANSFORMATIONS, columnKeys);
+
 		let groupKeys = query.TRANSFORMATIONS["GROUP"];
 		let applyKeys = getApplyKeys(query.TRANSFORMATIONS["APPLY"]);
 		validateColumnsMustBeInGroupOrApply(columnKeys, groupKeys, applyKeys);
+
 		totalKeys = totalKeys.concat(groupKeys);
 	}
 	validateAccessingOneDatasetOnly(totalKeys);
@@ -41,7 +56,7 @@ export async function validateQuery(query: any) {
 
 export function validateAccessingOneDatasetOnly(totalKeys: any[]) {
 	totalKeys = totalKeys.filter((key) => {
-		return (key.includes("_"));
+		return key.includes("_");
 	});
 	totalKeys = totalKeys.map((key) => {
 		return key.split("_")[0];
@@ -86,13 +101,13 @@ export function validateGroup(groupKeys: any, columns: any[]) {
 		if (!validSKeys.includes(smKey) && !validMKeys.includes(smKey)) {
 			throw new InsightError("GROUP key must be an smKey");
 		}
-		if (!columns.includes(groupKey)) {
-			throw new InsightError("GROUP key must be in COLUMNS");
-		}
+		// if (!columns.includes(groupKey)) {
+		// 	throw new InsightError("GROUP key must be in COLUMNS");
+		// }
 	}
 }
 
-export function validateApply(applyRuleList: any[],  columns: any[]) {
+export function validateApply(applyRuleList: any[], columns: any[]) {
 	validateAsArray("APPLY", applyRuleList);
 	for (let applyRule of applyRuleList) {
 		validateArrayRule(applyRule, columns);
@@ -137,7 +152,6 @@ export function validateApplyRuleValue(applyRuleValue: any) {
 			throw new InsightError("APPLYRULEVALUEVALUE must be an mKey");
 		}
 	}
-
 }
 
 export function validateTransformationKeys(keys: any[]) {
@@ -268,7 +282,6 @@ export function validateSValue(values: any[]) {
 	}
 }
 
-
 export function validateKeys(keys: string[], keyType: string): void {
 	// GT, LT, EQ, and IS should have a key list size of 1.
 	if (keys.length !== 1) {
@@ -296,28 +309,7 @@ export function validateKeys(keys: string[], keyType: string): void {
 	if (keyType === "string" && !validSKeys.includes(dataSet)) {
 		throw new InsightError("Invalid skey");
 	}
-	if (keyType === "either" && (!validSKeys.includes(dataSet) && !validMKeys.includes(dataSet))) {
+	if (keyType === "either" && !validSKeys.includes(dataSet) && !validMKeys.includes(dataSet)) {
 		throw new InsightError("Invalid smkey");
 	}
 }
-
-export function validateAccessOneDataset(currentDataBase: string[], querySection: string) {
-	if (currentDataBase[0] === "null") {
-		currentDataBase[0] = querySection;
-	} else {
-		if (currentDataBase[0] !== querySection) {
-			throw new InsightError("Can't have multiple sections!");
-		}
-	}
-}
-
-export async function validateOption(query: any) {
-	let queryOptionKeys = Object.keys(query);
-	validateOptionKeys(queryOptionKeys);
-	validateAsArray("COLUMNS", query["COLUMNS"]);
-	validateColumns(query["COLUMNS"]);
-	if (queryOptionKeys.includes("ORDER")) {
-		validateOrder(query["ORDER"], query["COLUMNS"]);
-	}
-}
-

@@ -26,9 +26,12 @@ export function filterByWhere(query: any, relevantData: any[]) {
 
 export function transform(query: any, data: any[]) {
 	let groupKeys: string[] = query.GROUP; // Cohesion-coupling??
+	// console.log(groupKeys);
+	// console.log(data.length);
 	let groups = makeGroups(groupKeys, data);
 	let applyObjects: any[] = query.APPLY;
 	let newQueryResults = [];
+	// console.log(groups.length);
 	for (let group of groups) {
 		let queryResult = trimByKeys(groupKeys, group[0]);
 		// console.log(queryResult);
@@ -38,6 +41,7 @@ export function transform(query: any, data: any[]) {
 		}
 		newQueryResults.push(queryResult);
 	}
+	// console.log("query results", newQueryResults)
 	return newQueryResults;
 }
 
@@ -65,7 +69,7 @@ export function applyTransformation(applyObjects: any[], group: any[]) {
 }
 
 export function applyRule(applyToken: string, smKey: string, group: any[]) {
-	switch(applyToken) {
+	switch (applyToken) {
 		case "SUM":
 			return applyRuleSum(smKey, group);
 		case "MAX":
@@ -119,9 +123,11 @@ export function applyRuleMin(smKey: string, group: any[]) {
 }
 
 export function applyRuleCount(smKey: string, group: any[]) {
-	let uniqueValues = new Set(group.map((item) => {
-		return item[smKey];
-	}));
+	let uniqueValues = new Set(
+		group.map((item) => {
+			return item[smKey];
+		})
+	);
 	return uniqueValues.size;
 }
 
@@ -137,29 +143,17 @@ export function applyRuleAvg(smKey: string, group: any[]) {
 }
 
 export function makeGroups(groupKeys: string[], queryResults: any[]) {
-	let queryResultsCopy = [...queryResults];
-	let filteredResults = [];
-	while(queryResultsCopy.length !== 0) {
-		let queryResult = queryResultsCopy.pop();
-		let group = queryResultsCopy.filter((qr) => {
-			let matchesGroupValues = true;
-			for (let groupKey of groupKeys) {
-				matchesGroupValues = matchesGroupValues && (queryResult[groupKey] === qr[groupKey]);
-			}
-			return matchesGroupValues;
-		});
-		group.push(queryResult);
-		queryResultsCopy = queryResultsCopy.filter((qr) => {
-			for (let member of group) {
-				if (deepEquals(member, qr)) {
-					return false;
-				}
-			}
-			return true;
-		});
-		filteredResults.push(group);
+	const groups = new Map<string, any[]>();
+	for (const result of queryResults) {
+		const groupKey = groupKeys.map((key) => result[key]).join("|");
+		const group = groups.get(groupKey);
+		if (group) {
+			group.push(result);
+		} else {
+			groups.set(groupKey, [result]);
+		}
 	}
-	return filteredResults;
+	return Array.from(groups.values());
 }
 
 export function deepEquals(obj1: any, obj2: any) {
@@ -178,7 +172,8 @@ export function getGroupKeys(query: any) {
 
 export function performWhere(query: any, section: object): boolean {
 	let result: boolean = true;
-	if (Object.keys(query).length === 0) { // For instance {"WHERE": {}};
+	if (Object.keys(query).length === 0) {
+		// For instance {"WHERE": {}};
 		return true;
 	}
 	let key = Object.keys(query)[0];
@@ -197,15 +192,15 @@ export function performWhere(query: any, section: object): boolean {
 			}
 			return result;
 		case "LT":
-			return result = lt(value, section);
+			return (result = lt(value, section));
 		case "GT":
-			return result = gt(value, section);
+			return (result = gt(value, section));
 		case "EQ":
-			return result = eq(value, section);
+			return (result = eq(value, section));
 		case "IS":
-			return result = is(value, section);
+			return (result = is(value, section));
 		case "NOT":
-			return result = !(performWhere(value, section));
+			return (result = !performWhere(value, section));
 		default:
 			throw new InsightError("Invalid filter key: " + key);
 	}
@@ -314,4 +309,3 @@ export async function getData() {
 		throw new InsightError("Blah");
 	}
 }
-
