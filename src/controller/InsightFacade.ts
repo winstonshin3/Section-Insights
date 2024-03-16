@@ -37,6 +37,7 @@ import {
 	makeInsightResult,
 	matchByMarker,
 } from "./AddDatasetHelperFunctions2";
+import {sortByString, sortByStrings} from "./HelperFunctions";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -113,38 +114,11 @@ export default class InsightFacade implements IInsightFacade {
 		}
 		let order = query.OPTIONS.ORDER;
 		if (typeof order === "string") {
-			queryResults.sort((a, b) => {
-				if (order["dir"] === "DOWN") {
-					return a[order] - b[order];
-				} else {
-					return b[order] - a[order];
-				}
-			});
+			sortByString(order, queryResults);
 		}
 		if (typeof order === "object") {
-			order = order["keys"];
-			queryResults.sort((a, b) => {
-				let diff = 0;
-				for (let o of order) {
-					if (a[o] > b[o]) {
-						diff = 1;
-						break;
-					} else if (a[o] < b[o]) {
-						diff = -1;
-						break;
-					}
-				}
-				if (order["dir"] === "DOWN") {
-					return -diff;
-				} else {
-					return diff;
-				}
-			});
+			sortByStrings(order, queryResults);
 		}
-
-		// let orderKey = getOrderKey(parsedQuery.OPTIONS);
-		//
-		// return Promise.resolve(queryResults);
 		selectKeyValuesInColumn(queryResults, anyKeys);
 		validateResultSize(queryResults);
 		return Promise.resolve(queryResults);
