@@ -136,6 +136,8 @@ export default class InsightFacade implements IInsightFacade {
 			// await fs.remove(`./data/${id}.json`);
 			if (fileNames.includes(`${id}`)) {
 				await fs.remove(`./data/${id}`);
+			} else {
+				throw new InsightError();
 			}
 			// Return the id of the dataset that was removed
 			return Promise.resolve(id);

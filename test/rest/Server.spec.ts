@@ -66,7 +66,7 @@ describe("Facade D3", function () {
 		}
 	});
 
-	it("Put test for add dataset", async function () {
+	it.only("Successfully add dataset", async function () {
 		try {
 			return request("http://localhost:4321")
 				.put("/addDataSet/sections/sections")
@@ -84,7 +84,7 @@ describe("Facade D3", function () {
 		}
 	});
 
-	it("Delete test for delete dataset", async function () {
+	it.only("Successfully delete datatset", async function () {
 		try {
 			return request("http://localhost:4321")
 				.delete("/deleteDataset/sections")
@@ -94,6 +94,21 @@ describe("Facade D3", function () {
 				.catch(function (err) {
 					console.log(err);
 					expect.fail();
+				});
+		} catch (err) {
+			expect.fail();
+		}
+	});
+
+	it.only("Fail to delete dataset", async function () {
+		try {
+			return request("http://localhost:4321")
+				.delete("/deleteDataset/sections")
+				.then(function (res: Response) {
+					expect.fail();
+				})
+				.catch(function (err) {
+					// TEST PASSED
 				});
 		} catch (err) {
 			expect.fail();
