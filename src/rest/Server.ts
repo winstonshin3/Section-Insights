@@ -1,6 +1,7 @@
 import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
+import InsightFacade from "../controller/InsightFacade";
 
 export default class Server {
 	private readonly port: number;
@@ -83,10 +84,59 @@ export default class Server {
 		// This is an example endpoint this you can invoke by accessing this URL in your browser:
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
-
 		// TODO: your other endpoints should go here
-
+		this.express.get("/listDataSet", Server.insightFacadeListDataset);
+		this.express.put("/addDataSet", Server.insightFacadeAddDataset);
+		this.express.post("/queryDataset", Server.insightFacadePerformQuery);
+		this.express.delete("/deleteDataset", Server.insightFacadeDeleteDataset);
 	}
+
+	private static async insightFacadeDeleteDataset(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const {id} = req.body;
+			const response = await facade.removeDataset(id);
+			res.status(200).json({result: response});
+		} catch (err) {
+			res.status(400).json({error: err});
+		}
+	}
+
+
+	private static async insightFacadePerformQuery(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const {query} = req.body;
+			const response = await facade.performQuery(query);
+			res.status(200).json({result: response});
+		} catch (err) {
+			res.status(400).json({error: err});
+		}
+	}
+
+	private static async insightFacadeAddDataset(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const {id, content, kind} = req.body;
+			const response = await facade.addDataset(id, content, kind);
+			res.status(200).json({result: response});
+		} catch (err) {
+			res.status(400).json({error: err});
+		}
+	}
+
+
+	private static async insightFacadeListDataset(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const response = await facade.listDatasets();
+			res.status(200).json({result: response});
+			return response;
+		} catch (err) {
+			console.log("List dataset failed!");
+		}
+	}
+
 
 	// The next two methods handle the echo service.
 	// These are almost certainly not the best place to put these, but are here for your reference.
