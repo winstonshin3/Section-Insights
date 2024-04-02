@@ -1,6 +1,8 @@
 import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
+import InsightFacade from "../controller/InsightFacade";
+import {InsightDatasetKind} from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
@@ -73,7 +75,6 @@ export default class Server {
 		// JSON parser must be place before raw parser because of wildcard matching done by raw parser below
 		this.express.use(express.json());
 		this.express.use(express.raw({type: "application/*", limit: "10mb"}));
-
 		// enable cors in request headers to allow cross-origin HTTP requests
 		this.express.use(cors());
 	}
@@ -83,10 +84,54 @@ export default class Server {
 		// This is an example endpoint this you can invoke by accessing this URL in your browser:
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
-
 		// TODO: your other endpoints should go here
-
+		this.express.get("/listDataSet", Server.insightFacadeListDataset);
+		this.express.put("/addDataSet/:id/:kind", Server.insightFacadeAddDataset);
+		this.express.post("/queryDataset", Server.insightFacadePerformQuery);
+		this.express.delete("/deleteDataset/:id", Server.insightFacadeDeleteDataset);
 	}
+
+	private static async insightFacadePerformQuery(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const response = await facade.performQuery(req.body);
+			res.status(200).json({result: response});
+		} catch (err) {
+			res.status(400).json({error: err});
+		}
+	}
+
+	private static async insightFacadeAddDataset(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const response = await facade.addDataset(req.params.id, req.body, req.params.kind as InsightDatasetKind);
+			res.status(200).json({result: response});
+		} catch (err) {
+			res.status(400).json({error: err});
+		}
+	}
+
+	private static async insightFacadeDeleteDataset(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const response = await facade.removeDataset(req.params.id);
+			res.status(200).json({result: response});
+		} catch (err) {
+			res.status(400).json({error: err});
+		}
+	}
+
+
+	private static async insightFacadeListDataset(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const response = await facade.listDatasets();
+			res.status(200).json({result: response});
+		} catch (err) {
+			console.log("List dataset failed!");
+		}
+	}
+
 
 	// The next two methods handle the echo service.
 	// These are almost certainly not the best place to put these, but are here for your reference.
