@@ -2,7 +2,7 @@ import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
 import InsightFacade from "../controller/InsightFacade";
-import {InsightDatasetKind} from "../controller/IInsightFacade";
+import {InsightDatasetKind, InsightError} from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
@@ -37,14 +37,16 @@ export default class Server {
 				console.error("Server::start() - server already listening");
 				reject();
 			} else {
-				this.server = this.express.listen(this.port, () => {
-					console.info(`Server::start() - server listening on port: ${this.port}`);
-					resolve();
-				}).on("error", (err: Error) => {
-					// catches errors in server start
-					console.error(`Server::start() - server ERROR: ${err.message}`);
-					reject(err);
-				});
+				this.server = this.express
+					.listen(this.port, () => {
+						console.info(`Server::start() - server listening on port: ${this.port}`);
+						resolve();
+					})
+					.on("error", (err: Error) => {
+						// catches errors in server start
+						console.error(`Server::start() - server ERROR: ${err.message}`);
+						reject(err);
+					});
 			}
 		});
 	}
@@ -85,10 +87,10 @@ export default class Server {
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
 		// TODO: your other endpoints should go here
-		this.express.get("/listDataSet", Server.insightFacadeListDataset);
-		this.express.put("/addDataSet/:id/:kind", Server.insightFacadeAddDataset);
-		this.express.post("/queryDataset", Server.insightFacadePerformQuery);
-		this.express.delete("/deleteDataset/:id", Server.insightFacadeDeleteDataset);
+		this.express.get("/dataset", Server.insightFacadeListDataset);
+		this.express.put("/dataset/:id/:kind", Server.insightFacadeAddDataset);
+		this.express.post("/query", Server.insightFacadePerformQuery);
+		this.express.delete("/dataset/:id", Server.insightFacadeDeleteDataset);
 	}
 
 	private static async insightFacadePerformQuery(req: Request, res: Response) {
@@ -117,10 +119,13 @@ export default class Server {
 			const response = await facade.removeDataset(req.params.id);
 			res.status(200).json({result: response});
 		} catch (err) {
-			res.status(400).json({error: err});
+			if (err instanceof InsightError) {
+				res.status(400).json({error: err});
+			} else {
+				res.status(404).json({error: err});
+			}
 		}
 	}
-
 
 	private static async insightFacadeListDataset(req: Request, res: Response) {
 		try {
@@ -131,7 +136,6 @@ export default class Server {
 			console.log("List dataset failed!");
 		}
 	}
-
 
 	// The next two methods handle the echo service.
 	// These are almost certainly not the best place to put these, but are here for your reference.
