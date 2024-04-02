@@ -87,47 +87,48 @@ export default class Server {
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
 		// TODO: your other endpoints should go here
-		this.express.get("/dataset", Server.insightFacadeListDataset);
-		this.express.put("/dataset/:id/:kind", Server.insightFacadeAddDataset);
-		this.express.post("/query", Server.insightFacadePerformQuery);
-		this.express.delete("/dataset/:id", Server.insightFacadeDeleteDataset);
+		this.express.get("/datasets", Server.listDataset);
+		this.express.put("/dataset/:id/:kind", Server.addDataset);
+		this.express.post("/query", Server.performQuery);
+		this.express.delete("/dataset/:id", Server.deleteDataset);
 	}
 
-	private static async insightFacadePerformQuery(req: Request, res: Response) {
-		try {
-			const facade = new InsightFacade();
-			const response = await facade.performQuery(req.body);
-			res.status(200).json({result: response});
-		} catch (err) {
-			res.status(400).json({error: err});
-		}
-	}
 
-	private static async insightFacadeAddDataset(req: Request, res: Response) {
+	private static async addDataset(req: Request, res: Response) {
 		try {
 			const facade = new InsightFacade();
 			const response = await facade.addDataset(req.params.id, req.body, req.params.kind as InsightDatasetKind);
 			res.status(200).json({result: response});
-		} catch (err) {
-			res.status(400).json({error: err});
+		} catch (err: any) {
+			res.status(400).json({error: err.message});
 		}
 	}
 
-	private static async insightFacadeDeleteDataset(req: Request, res: Response) {
+	private static async deleteDataset(req: Request, res: Response) {
 		try {
 			const facade = new InsightFacade();
 			const response = await facade.removeDataset(req.params.id);
 			res.status(200).json({result: response});
-		} catch (err) {
+		} catch (err: any) {
 			if (err instanceof InsightError) {
-				res.status(400).json({error: err});
+				res.status(400).json({error: err.message});
 			} else {
-				res.status(404).json({error: err});
+				res.status(404).json({error: err.message});
 			}
 		}
 	}
 
-	private static async insightFacadeListDataset(req: Request, res: Response) {
+	private static async performQuery(req: Request, res: Response) {
+		try {
+			const facade = new InsightFacade();
+			const response = await facade.performQuery(req.body);
+			res.status(200).json({result: response});
+		} catch (err: any) {
+			res.status(400).json({error: err.message});
+		}
+	}
+
+	private static async listDataset(req: Request, res: Response) {
 		try {
 			const facade = new InsightFacade();
 			const response = await facade.listDatasets();
@@ -145,8 +146,8 @@ export default class Server {
 			console.log(`Server::echo(..) - params: ${JSON.stringify(req.params)}`);
 			const response = Server.performEcho(req.params.msg);
 			res.status(200).json({result: response});
-		} catch (err) {
-			res.status(400).json({error: err});
+		} catch (err: any) {
+			res.status(400).json({error: err.message});
 		}
 	}
 
