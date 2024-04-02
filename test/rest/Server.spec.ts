@@ -7,7 +7,7 @@ import {InsightDatasetKind} from "../../src/controller/IInsightFacade";
 import {clearDisk, getBuffer} from "../TestUtil";
 import * as fs from "fs-extra";
 
-describe.only("Facade D3", function () {
+describe("Facade D3", function () {
 	let facade: InsightFacade;
 	let server: Server;
 	let id: string;
