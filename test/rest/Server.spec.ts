@@ -8,7 +8,6 @@ import {clearDisk, getBuffer} from "../TestUtil";
 import * as fs from "fs-extra";
 
 describe("Facade D3", function () {
-
 	let facade: InsightFacade;
 	let server: Server;
 	let id: string;
@@ -23,21 +22,27 @@ describe("Facade D3", function () {
 		kind = InsightDatasetKind.Sections;
 		content = await getBuffer("pair.zip");
 		// TODO: start server here once and handle errors properly
-		return server.start().then(() => {
-			console.info("App::initServer() - started");
-		}).catch((err: Error) => {
-			console.error(`App::initServer() - ERROR: ${err.message}`);
-		});
+		return server
+			.start()
+			.then(() => {
+				console.info("App::initServer() - started");
+			})
+			.catch((err: Error) => {
+				console.error(`App::initServer() - ERROR: ${err.message}`);
+			});
 	});
 
-	after( async function () {
+	after(async function () {
 		// TODO: stop server here once!
 		await clearDisk();
-		return server.stop().then(() => {
-			console.info("App::initServer() - stopped");
-		}).catch((err: Error) => {
-			console.error(`App::initServer() - ERROR: ${err.message}`);
-		});
+		return server
+			.stop()
+			.then(() => {
+				console.info("App::initServer() - stopped");
+			})
+			.catch((err: Error) => {
+				console.error(`App::initServer() - ERROR: ${err.message}`);
+			});
 	});
 
 	beforeEach(function () {
@@ -53,7 +58,7 @@ describe("Facade D3", function () {
 	it("Get test for list dataset", function () {
 		try {
 			return request("http://localhost:4321")
-				.get("/listDataSet")
+				.get("/dataset")
 				.set("Content-Type", "application/")
 				.then(function (res: Response) {
 					expect(res.status).to.be.equal(200);
@@ -66,17 +71,16 @@ describe("Facade D3", function () {
 		}
 	});
 
-	it("Put test for add dataset", async function () {
+	it.only("Successfully add dataset", async function () {
 		try {
 			return request("http://localhost:4321")
-				.put("/addDataSet/sections/sections")
+				.put("/dataset/sections/sections")
 				.send(content)
 				.set("Content-Type", "application/x-zip-compressed")
 				.then(function (res: Response) {
 					expect(res.status).to.be.equal(200);
 				})
 				.catch(function (err) {
-					console.log(err);
 					expect.fail();
 				});
 		} catch (err) {
@@ -84,16 +88,30 @@ describe("Facade D3", function () {
 		}
 	});
 
-	it("Delete test for delete dataset", async function () {
+	it.only("Successfully delete datatset", async function () {
 		try {
 			return request("http://localhost:4321")
-				.delete("/deleteDataset/sections")
+				.delete("/dataset/sections")
 				.then(function (res: Response) {
 					expect(res.status).to.be.equal(200);
 				})
 				.catch(function (err) {
-					console.log(err);
 					expect.fail();
+				});
+		} catch (err) {
+			expect.fail();
+		}
+	});
+
+	it.only("Fail to delete dataset", async function () {
+		try {
+			return request("http://localhost:4321")
+				.delete("/dataset/sections")
+				.then(function (res: Response) {
+					expect.fail();
+				})
+				.catch(function (err) {
+					// TEST PASSED
 				});
 		} catch (err) {
 			expect.fail();
@@ -105,7 +123,7 @@ describe("Facade D3", function () {
 		const queryString = JSON.stringify(fileQuery.input);
 		try {
 			return request("http://localhost:4321")
-				.post("/queryDataset")
+				.post("/query")
 				.send(queryString)
 				.set("Content-Type", "application/json")
 				.then(function (res: Response) {
@@ -119,7 +137,6 @@ describe("Facade D3", function () {
 			expect.fail();
 		}
 	});
-
 
 	// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
 });
