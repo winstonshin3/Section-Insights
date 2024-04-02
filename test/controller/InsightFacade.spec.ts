@@ -95,7 +95,7 @@ describe("InsightFacade", function () {
 		afterEach(async function () {
 			// This section resets the data directory (removing any cached data)
 			// This runs after each test, which should make each test independent of the previous one
-			// await clearDisk();
+			await clearDisk();
 		});
 
 		it("Fail to addDataset because of blank id", async function () {
@@ -103,7 +103,7 @@ describe("InsightFacade", function () {
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
 
-		it.only("successfully add a sections dataset", async function () {
+		it("successfully add a sections dataset", async function () {
 			const result = await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 			return expect(result).to.have.deep.members(["sections"]);
 		});

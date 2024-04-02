@@ -50,6 +50,7 @@ export async function getContentAsBase64(content: string) {
 	try {
 		return await JSZip.loadAsync(content, {base64: true});
 	} catch (e) {
+		console.log(e);
 		throw new InsightError("Invalid base64 input");
 	}
 }
