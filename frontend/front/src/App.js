@@ -1,13 +1,18 @@
-import logo from './logo.svg';
+
 import './App.css';
+import DatasetList from './DatasetList';
+import AddDatasetComponent from './AddDatasetComponent';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-		Hi you made it to the front end :)
+	  <DatasetList />
+	  <AddDatasetComponent />
+
       </header>
     </div>
+
   );
 }
 

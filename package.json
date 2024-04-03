@@ -52,7 +52,7 @@
 		"lint": "eslint src test --ext .ts",
 		"fix": "yarn lint --fix",
 		"backend": "ts-node src/App.ts",
-		"frontend": "cd frontend/section-insights && yarn start",
+		"frontend": "cd frontend/front && npm start",
 		"start": "concurrently \"yarn backend\" \"yarn frontend\""
 	}
 }
