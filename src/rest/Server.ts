@@ -93,7 +93,6 @@ export default class Server {
 		this.express.delete("/dataset/:id", Server.deleteDataset);
 	}
 
-
 	private static async addDataset(req: Request, res: Response) {
 		try {
 			const facade = new InsightFacade();

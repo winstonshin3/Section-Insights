@@ -2,6 +2,7 @@
 import './App.css';
 import DatasetList from './DatasetList';
 import AddDatasetComponent from './AddDatasetComponent';
+import DeleteDatasetComponent from './DeleteDatasetComponent';
 
 function App() {
   return (
@@ -9,6 +10,7 @@ function App() {
       <header className="App-header">
 	  <DatasetList />
 	  <AddDatasetComponent />
+	  <DeleteDatasetComponent />
 
       </header>
     </div>
