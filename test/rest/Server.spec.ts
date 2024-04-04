@@ -178,7 +178,6 @@ describe("Facade D3", function () {
 		}
 	});
 
-
 	it("Get test for list dataset", function () {
 		try {
 			return request("http://localhost:4321")

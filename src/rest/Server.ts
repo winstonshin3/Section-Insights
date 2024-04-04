@@ -4,10 +4,15 @@ import cors from "cors";
 import InsightFacade from "../controller/InsightFacade";
 import {InsightDatasetKind, InsightError} from "../controller/IInsightFacade";
 
+// const multer = require("multer");
+// const app = express();
+
 export default class Server {
 	private readonly port: number;
 	private express: Application;
 	private server: http.Server | undefined;
+
+	private static insightFacade: InsightFacade = new InsightFacade();
 
 	constructor(port: number) {
 		console.info(`Server::<init>( ${port} )`);
@@ -94,6 +99,19 @@ export default class Server {
 	}
 
 	private static async addDataset(req: Request, res: Response) {
+		// const content = Buffer.from(req.body).toString("base64");
+		// const id = req.params.id;
+		// const kind = req.params.kind;
+
+		// let kindType: InsightDatasetKind = InsightDatasetKind.Rooms; // HAD TO DO THIS CAUSE BELOW WAS COMPLAINING
+		// if(kind === "sections") {
+		// 	kindType = InsightDatasetKind.Sections;
+		// } else if (kind === "rooms") {
+		// 	kindType = InsightDatasetKind.Rooms;
+		// } else {
+		// 	res.status(400).json({error: "not dataset kind"});
+		// }
+
 		try {
 			const facade = new InsightFacade();
 			const response = await facade.addDataset(req.params.id, req.body, req.params.kind as InsightDatasetKind);
@@ -101,6 +119,15 @@ export default class Server {
 		} catch (err: any) {
 			res.status(400).json({error: err.message});
 		}
+
+
+		// Server.insightFacade.addDataset(id, content, kindType)
+		// 	.then((result) => {
+		// 		res.status(200).json({result: result});
+		// 	})
+		// 	.catch((error) => {
+		// 		res.status(400).json({error: error.message});
+		// 	});
 	}
 
 	private static async deleteDataset(req: Request, res: Response) {
