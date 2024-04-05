@@ -16,7 +16,7 @@ function DatasetList() {
 
     return (
         <div>
-            <button onClick={listDatasets}>Refresh List</button>
+
             <ul id="datasetList">
 				{datasets.map((dataset, index) => (
 					<li key={index}>

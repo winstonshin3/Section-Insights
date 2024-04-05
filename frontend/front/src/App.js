@@ -3,6 +3,7 @@ import './App.css';
 import DatasetList from './DatasetList';
 import AddDatasetComponent from './AddDatasetComponent';
 import DeleteDatasetComponent from './DeleteDatasetComponent';
+import FirstInsight from "./components/FirstInsight";
 
 function App() {
   return (
@@ -11,7 +12,7 @@ function App() {
 	  <DatasetList />
 	  <AddDatasetComponent />
 	  <DeleteDatasetComponent />
-
+		  <FirstInsight/>
       </header>
     </div>
 
