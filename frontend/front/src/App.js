@@ -9,10 +9,12 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-	  	<DatasetList />
-	  	<AddDatasetComponent />
-	  	<DeleteDatasetComponent />
-		<FirstInsight/>
+        <div className="container">
+          <DatasetList />
+          <AddDatasetComponent />
+          <DeleteDatasetComponent />
+          <FirstInsight />
+        </div>
       </header>
     </div>
 

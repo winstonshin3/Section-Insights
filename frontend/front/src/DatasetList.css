@@ -1,0 +1,40 @@
+.dataset-container {
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+
+}
+
+.dataset-header {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.refresh-button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.refresh-button:hover {
+    background-color: #0056b3;
+}
+
+.dataset-list {
+    list-style: none;
+    padding: 0;
+}
+
+.dataset-item {
+    background-color: #314366;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}

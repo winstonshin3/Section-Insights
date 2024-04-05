@@ -1,0 +1,53 @@
+.first-insight-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    background-color: #314366;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.chart-container {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.svg-chart {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin: 10px;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.refresh-button {
+    padding: 10px;
+    margin: 5px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.refresh-button:hover {
+    background-color: #0056b3;
+}
+
+.dataset-select {
+    padding: 10px;
+    border-radius: 4px;
+    margin: 5px;
+}
+
+.query-message {
+    text-align: center;
+    color: #d9534f;
+}

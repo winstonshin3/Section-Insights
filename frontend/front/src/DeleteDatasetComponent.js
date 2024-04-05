@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './DeleteDatasetComponent.css';
 
 const DeleteDatasetComponent = () => {
     const [datasetId, setDatasetId] = useState('');
@@ -27,17 +28,34 @@ const DeleteDatasetComponent = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={datasetId}
-                onChange={e => setDatasetId(e.target.value)}
-                placeholder="Dataset ID"
-                disabled={submitting}
-            />
-            <button type="submit" disabled={submitting}>Delete Dataset</button>
-            {message && <p>{message}</p>}
-        </form>
+        // <form onSubmit={handleSubmit}>
+        //     <input
+        //         type="text"
+        //         value={datasetId}
+        //         onChange={e => setDatasetId(e.target.value)}
+        //         placeholder="Dataset ID"
+        //         disabled={submitting}
+        //     />
+        //     <button type="submit" disabled={submitting}>Delete Dataset</button>
+        //     {message && <p>{message}</p>}
+        // </form>
+		<div className="delete-dataset-container">
+            <h2>Delete Dataset</h2>
+            <form onSubmit={handleSubmit} className="delete-dataset-form">
+                <div className="form-group">
+                    <input
+                        type="text"
+                        className="input-field"
+                        value={datasetId}
+                        onChange={e => setDatasetId(e.target.value)}
+                        placeholder="Dataset ID"
+                        disabled={submitting}
+                    />
+                </div>
+                <button type="submit" disabled={submitting} className="delete-button">Delete Dataset</button>
+                {message && <p className="message">{message}</p>}
+            </form>
+        </div>
     );
 };
 

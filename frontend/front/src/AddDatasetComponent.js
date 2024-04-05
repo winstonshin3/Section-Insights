@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 // import { useEffect } from 'react';
 import JSZip from 'jszip';
+import './AddDatasetComponent.css';
 
 
 function AddDatasetComponent() {
@@ -56,33 +57,74 @@ function AddDatasetComponent() {
 
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input
-                type="file"
-                onChange={e => setFile(e.target.files[0])} // Set the selected file
-				accept=".zip"
-                disabled={submitting}
-            />
-            <input
-                type="text"
-                value={datasetId}
-                onChange={e => setDatasetId(e.target.value)}
-                placeholder="Dataset ID"
-                disabled={submitting}
-				// ref = {fileInputRef}
-            />
-            <select
-                value={kind}
-                onChange={e => setKind(e.target.value)}
-                disabled={submitting}
-            >
-                <option value="">Select Type</option>
-                <option value="rooms">Rooms</option>
-                <option value="sections">Sections</option>
-            </select>
-            <button type="submit" disabled={submitting}>Add Dataset</button>
-            {message && <p>{message}</p>}
-        </form>
+        // <form onSubmit={handleSubmit}>
+        //     <input
+        //         type="file"
+        //         onChange={e => setFile(e.target.files[0])} // Set the selected file
+		// 		accept=".zip"
+        //         disabled={submitting}
+        //     />
+        //     <input
+        //         type="text"
+        //         value={datasetId}
+        //         onChange={e => setDatasetId(e.target.value)}
+        //         placeholder="Dataset ID"
+        //         disabled={submitting}
+		// 		// ref = {fileInputRef}
+        //     />
+        //     <select
+        //         value={kind}
+        //         onChange={e => setKind(e.target.value)}
+        //         disabled={submitting}
+        //     >
+        //         <option value="">Select Type</option>
+        //         <option value="rooms">Rooms</option>
+        //         <option value="sections">Sections</option>
+        //     </select>
+        //     <button type="submit" disabled={submitting}>Add Dataset</button>
+        //     {message && <p>{message}</p>}
+        // </form>
+		<div className="add-dataset-container">
+		<h2>Add Dataset</h2>
+		<form onSubmit={handleSubmit} className="add-dataset-form">
+			<div className="form-group">
+				<label htmlFor="fileInput">Dataset File : </label>
+				<input
+					id="fileInput"
+					type="file"
+					onChange={e => setFile(e.target.files[0])}
+					accept=".zip"
+					disabled={submitting}
+				/>
+			</div>
+			<div className="form-group">
+				<label htmlFor="datasetIdInput">Dataset ID : </label>
+				<input
+					id="datasetIdInput"
+					type="text"
+					value={datasetId}
+					onChange={e => setDatasetId(e.target.value)}
+					placeholder="Dataset ID"
+					disabled={submitting}
+				/>
+			</div>
+			<div className="form-group">
+				<label htmlFor="kindSelect">Dataset Type : </label>
+				<select
+					id="kindSelect"
+					value={kind}
+					onChange={e => setKind(e.target.value)}
+					disabled={submitting}
+				>
+					<option value="">Select Type</option>
+					<option value="rooms">Rooms</option>
+					<option value="sections">Sections</option>
+				</select>
+			</div>
+			<button type="submit" disabled={submitting} className="submit-button">Add Dataset</button>
+			{message && <p className="feedback-message">{message}</p>}
+		</form>
+	</div>
     );
 };
 

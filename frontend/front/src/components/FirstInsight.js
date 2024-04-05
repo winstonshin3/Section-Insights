@@ -5,6 +5,7 @@ import { max } from 'd3-array';
 import { axisLeft } from 'd3-axis';
 import { arc, pie } from 'd3-shape';
 import { scaleOrdinal } from 'd3-scale';
+import './FirstInsight.css';
 
 
 function FirstInsight(props) {
@@ -105,9 +106,9 @@ function FirstInsight(props) {
 	const query3 = {
 		WHERE: {
 			OR: [
-				{IS: { [selectedId + "_dept"]: "asia"}},
-				{IS: { [selectedId + "_dept"]: "econ"}},
-				{IS: { [selectedId + "_dept"]: "engl"}}
+				{IS: { [selectedId + "_dept"]: "anth"}},
+				{IS: { [selectedId + "_dept"]: "musc"}},
+				{IS: { [selectedId + "_dept"]: "comm"}}
 			]
 		},
 		OPTIONS: {
@@ -333,36 +334,57 @@ function FirstInsight(props) {
 
 
 	return (
-		<div>
-			<p>Display of Number of Unique Course Code For BIOL CPSC MATH</p>
-			<div>
-				<svg ref={svgRef} width="550" height="200">
-					<g className="x-axis"></g>
-					<g className="y-axis"></g>
-				</svg>
+		// <div>
+		// 	<p>Display of Number of Unique Course Code For BIOL CPSC MATH</p>
+		// 	<div>
+		// 		<svg ref={svgRef} width="550" height="200">
+		// 			<g className="x-axis"></g>
+		// 			<g className="y-axis"></g>
+		// 		</svg>
 
-			</div>
-			<button onClick={queryDataset}>Refresh Graph</button>
-			<button onClick={queryDataset1}>Refresh Graph 1</button>
-			<button onClick={queryDataset2}>Refresh Graph 2</button>
-			<svg ref={barChartRef1} width={svgWidth} height={svgHeight}>
-            {/* Components for the first bar chart */}
-			</svg>
-			<svg ref={pieChartRef} width={svgWidth} height={svgHeight}>
-				{/* Components for the second bar chart */}
-			</svg>
-			<svg ref={barChartRef2} width={svgWidth} height={svgHeight}>
-				{/* Components for the second bar chart */}
-			</svg>
+		// 	</div>
+		// 	<button onClick={queryDataset}>Refresh Graph</button>
+		// 	<button onClick={queryDataset1}>Refresh Graph 1</button>
+		// 	<button onClick={queryDataset2}>Refresh Graph 2</button>
+		// 	<svg ref={barChartRef1} width={svgWidth} height={svgHeight}>
+        //     {/* Components for the first bar chart */}
+		// 	</svg>
+		// 	<svg ref={pieChartRef} width={svgWidth} height={svgHeight}>
+		// 		{/* Components for the second bar chart */}
+		// 	</svg>
+		// 	<svg ref={barChartRef2} width={svgWidth} height={svgHeight}>
+		// 		{/* Components for the second bar chart */}
+		// 	</svg>
 
-			<p>{queryMessage}</p>
-			<select onChange={(e) => handleDatasetChange(e.target.value)}>
-    			{datasets.map((dataset, index) => (
-        		<option key={index} value={dataset.id}>{dataset.id}</option>
-    			))}
-			</select>
+		// 	<p>{queryMessage}</p>
+		// 	<select onChange={(e) => handleDatasetChange(e.target.value)}>
+    	// 		{datasets.map((dataset, index) => (
+        // 		<option key={index} value={dataset.id}>{dataset.id}</option>
+    	// 		))}
+		// 	</select>
 
-		</div>
+		// </div>
+		<div className="first-insight-container">
+            <h2>First Insight</h2>
+            <div className="chart-container">
+                {/* <svg ref={svgRef} width="550" height="200" className="svg-chart"></svg> */}
+                {/* Other SVG elements */}
+                <svg ref={barChartRef1} width={svgWidth} height={svgHeight} className="svg-chart"></svg>
+                <svg ref={pieChartRef} width={svgWidth} height={svgHeight} className="svg-chart"></svg>
+                <svg ref={barChartRef2} width={svgWidth} height={svgHeight} className="svg-chart"></svg>
+            </div>
+            <div className="controls">
+                <button onClick={queryDataset} className="refresh-button">Refresh Graph</button>
+                <button onClick={queryDataset1} className="refresh-button">Refresh Graph 1</button>
+                <button onClick={queryDataset2} className="refresh-button">Refresh Graph 2</button>
+                <select onChange={(e) => handleDatasetChange(e.target.value)} className="dataset-select">
+                    {datasets.map((dataset, index) => (
+                        <option key={index} value={dataset.id}>{dataset.id}</option>
+                    ))}
+                </select>
+            </div>
+            <p className="query-message">{queryMessage}</p>
+        </div>
 	);
 }
 
