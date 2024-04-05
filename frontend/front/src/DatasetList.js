@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
+// import React, { useRef } from 'react';
 
 function DatasetList() {
+	// const [datasets, setDatasets] = useState([]);
 	const [datasets, setDatasets] = useState([]);
+    const [queryResult, setQueryResult] = useState([]);
+    const [queryMessage, setQueryMessage] = useState("No query has been searched");
+const svgRef = useRef();
+
 	const listDatasets = async () => {
         try {
             const response = await axios.get('http://localhost:4321/datasets');
@@ -16,7 +22,7 @@ function DatasetList() {
 
     return (
         <div>
-
+			<button onClick={listDatasets}>Refresh List</button>
             <ul id="datasetList">
 				{datasets.map((dataset, index) => (
 					<li key={index}>

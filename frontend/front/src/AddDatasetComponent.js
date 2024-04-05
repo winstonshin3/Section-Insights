@@ -39,9 +39,9 @@ function AddDatasetComponent() {
 				});
                 // setMessage(`Dataset added successfully: ${response}`);
 				const responseData = await response.json(); // Or response.text(), if the response is plain text
-        		setMessage(`Dataset added successfully: ${JSON.stringify(responseData)}`);
+        		setMessage(`${JSON.stringify(responseData)}`);
             } catch (error) {
-                setMessage(`Error processing file: ${error.message}`);
+                setMessage(`Error processing file: ${error.message.error}`);
             } finally {
                 setSubmitting(false);
             }

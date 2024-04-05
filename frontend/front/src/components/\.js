@@ -1,35 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { select, line, curveCardinal, axisBottom, scaleBand, axisRight, scaleLinear} from "d3";
 import axios from "axios";
-import { max } from 'd3-array';
-import { axisLeft } from 'd3-axis';
 function FirstInsight(props) {
 	const svgRef = useRef();
 	const [queryResult, setQueryResult] = useState([]);
 	const [queryMessage, setQueryMessage] = useState("No query has been searched");
 	const [datasets, setDatasets] = useState([]);
 	const [selectedId, setSelectedId] = useState("");
-
-	// var for graphs
-	// const svgWidth = 550;
-	// const svgHeight = 200;
-	// const margin = { top: 20, right: 30, bottom: 40, left: 50 };
-	// const barChartRef = useRef();
-	// const lineChartRef = useRef();
-	// const pieChartRef = useRef();
-
-	// const xScale = scaleBand()
-    // .domain(queryResult.map(d => d.category)) // Replace 'category' with actual data key
-    // .range([0, svgWidth])
-    // .padding(0.1);
-
-	// const yScale = scaleLinear()
-	// 	.domain([0, max(queryResult, d => d.value)]) // Replace 'value' with actual data key
-	// 	.range([svgHeight, 0]);
-
-	// const xAxis = axisBottom(xScale);
-	// const yAxis = axisLeft(yScale);
-
 
 	const handleDatasetChange = (selectedId) => {
 		console.log("Selected Dataset ID:", selectedId);
@@ -137,20 +114,6 @@ function FirstInsight(props) {
 			.attr("width", xScale.bandwidth())
 			.attr("height", value => 150 - yScale(value.count));
 	}, [queryResult]);
-
-	// useEffect(() => {
-	// 	const svg = select(barChartRef.current);
-
-	// 	// Draw X Axis
-	// 	svg.append("g")
-	// 		.attr("transform", `translate(0,${svgHeight})`)
-	// 		.call(xAxis);
-
-	// 	// Draw Y Axis
-	// 	svg.append("g")
-	// 		.call(yAxis);
-	// 	// ...
-	// }, [queryResult]);
 
 	return (
 		<div>

@@ -9,10 +9,10 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-	  <DatasetList />
-	  <AddDatasetComponent />
-	  <DeleteDatasetComponent />
-		  <FirstInsight/>
+	  	<DatasetList />
+	  	<AddDatasetComponent />
+	  	<DeleteDatasetComponent />
+		<FirstInsight/>
       </header>
     </div>
 
